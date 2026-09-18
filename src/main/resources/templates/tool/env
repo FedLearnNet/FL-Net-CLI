@@ -1,0 +1,15 @@
+# Id of the tool on the platform (tool detail page); also the client id in federated tests.
+APP_ID={tool.appId}
+ENABLE_CONFIG_SYNC={tool.configSync}
+TRACE_PERFORMANCE={tool.tracePerformance}
+ENABLE_PROJECT_STARTUP={tool.projectStartup}
+PRIO_LOCAL_CONFIG={tool.prioLocalConfig}
+SEND_CONSOLE_LOG={tool.sendConsoleLogs}
+
+MODEL_DIR=./
+DATA_DIR=./data/
+
+KEYCLOAK__URL={tool.keycloakUrl}
+
+WS_URL={tool.wsUrl}/api/testembed/
+HTTP_URL={tool.platformUrl}/api/testembed/

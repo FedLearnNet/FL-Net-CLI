@@ -1,0 +1,207 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+    <groupId>bio.cosy</groupId>
+    <artifactId>fl-net-cli</artifactId>
+    <version>1.0.0-SNAPSHOT</version>
+    <packaging>quarkus</packaging>
+
+    <properties>
+        <compiler-plugin.version>3.15.0</compiler-plugin.version>
+        <maven.compiler.release>25</maven.compiler.release>
+        <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
+        <project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
+        <quarkus.platform.artifact-id>quarkus-bom</quarkus.platform.artifact-id>
+        <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
+        <quarkus.platform.version>3.39.4</quarkus.platform.version>
+        <skipITs>true</skipITs>
+        <surefire-plugin.version>3.5.6</surefire-plugin.version>
+        <antrun-plugin.version>3.1.0</antrun-plugin.version>
+        <lombok.version>1.18.44</lombok.version>
+
+        <!-- Deployment bundles embedded into the CLI. Defaults point at the sibling repositories
+             of the FL-Net workspace; override with -Dflnet.platform.bundle=... in CI. -->
+        <flnet.platform.bundle>${project.basedir}/../FL-Net-Platform-Deployment/FLNET_platform</flnet.platform.bundle>
+        <flnet.client.bundle>${project.basedir}/../FL-Net-Client-Deployment/FLNet_client</flnet.client.bundle>
+        <flnet.bundle.output>${project.build.outputDirectory}/bundles</flnet.bundle.output>
+    </properties>
+
+    <dependencyManagement>
+        <dependencies>
+            <dependency>
+                <groupId>${quarkus.platform.group-id}</groupId>
+                <artifactId>${quarkus.platform.artifact-id}</artifactId>
+                <version>${quarkus.platform.version}</version>
+                <type>pom</type>
+                <scope>import</scope>
+            </dependency>
+        </dependencies>
+    </dependencyManagement>
+
+    <dependencies>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-picocli</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-arc</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-qute</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-hibernate-validator</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.projectlombok</groupId>
+            <artifactId>lombok</artifactId>
+            <version>${lombok.version}</version>
+            <scope>provided</scope>
+        </dependency>
+        <dependency>
+            <groupId>io.quarkus</groupId>
+            <artifactId>quarkus-junit</artifactId>
+            <scope>test</scope>
+        </dependency>
+    </dependencies>
+
+    <build>
+        <plugins>
+            <plugin>
+                <artifactId>maven-antrun-plugin</artifactId>
+                <version>${antrun-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <id>embed-deployment-bundles</id>
+                        <phase>process-resources</phase>
+                        <goals>
+                            <goal>run</goal>
+                        </goals>
+                        <configuration>
+                            <target>
+                                <!-- Never embed instance specific or secret files, even if the sibling
+                                     checkout was already used for a local deployment. -->
+                                <patternset id="bundle.files">
+                                    <exclude name=".env"/>
+                                    <exclude name="env/**"/>
+                                    <exclude name="**/*.pem"/>
+                                    <exclude name="**/*.key"/>
+                                    <exclude name="**/san.cnf"/>
+                                    <exclude name="**/.DS_Store"/>
+                                    <exclude name="umls/**" />
+                                    <exclude name="sapbert/**" />
+                                    <exclude name="*.txt"/>
+                                </patternset>
+                                <fail message="Platform bundle not found at ${flnet.platform.bundle} (set -Dflnet.platform.bundle=...)">
+                                    <condition><not><available file="${flnet.platform.bundle}/docker-compose.yml"/></not></condition>
+                                </fail>
+                                <fail message="Client bundle not found at ${flnet.client.bundle} (set -Dflnet.client.bundle=...)">
+                                    <condition><not><available file="${flnet.client.bundle}/docker-compose.yml"/></not></condition>
+                                </fail>
+                                <delete dir="${flnet.bundle.output}"/>
+                                <copy todir="${flnet.bundle.output}/platform">
+                                    <fileset dir="${flnet.platform.bundle}" defaultexcludes="no">
+                                        <patternset refid="bundle.files"/>
+                                    </fileset>
+                                    <!-- keep the (bind mounted) data directories, but never their local data -->
+                                    <fileset dir="${flnet.platform.bundle}" defaultexcludes="no">
+                                        <include name="umls/.gitignore"/>
+                                        <include name="sapbert/.gitignore"/>
+                                    </fileset>
+                                </copy>
+                                <copy todir="${flnet.bundle.output}/client">
+                                    <fileset dir="${flnet.client.bundle}" defaultexcludes="no">
+                                        <patternset refid="bundle.files"/>
+                                    </fileset>
+                                </copy>
+                                <!-- Resource directories cannot be listed inside a native image,
+                                     so every bundle ships with a manifest of its files. -->
+                                <fileset id="platform.manifest.files" dir="${flnet.bundle.output}/platform" defaultexcludes="no"/>
+                                <pathconvert refid="platform.manifest.files" property="platform.manifest" pathsep="${line.separator}" dirsep="/">
+                                    <map from="${flnet.bundle.output}/platform/" to=""/>
+                                </pathconvert>
+                                <echo file="${flnet.bundle.output}/platform.manifest" message="${platform.manifest}${line.separator}"/>
+                                <fileset id="client.manifest.files" dir="${flnet.bundle.output}/client" defaultexcludes="no"/>
+                                <pathconvert refid="client.manifest.files" property="client.manifest" pathsep="${line.separator}" dirsep="/">
+                                    <map from="${flnet.bundle.output}/client/" to=""/>
+                                </pathconvert>
+                                <echo file="${flnet.bundle.output}/client.manifest" message="${client.manifest}${line.separator}"/>
+                            </target>
+                        </configuration>
+                    </execution>
+                </executions>
+            </plugin>
+            <plugin>
+                <groupId>${quarkus.platform.group-id}</groupId>
+                <artifactId>quarkus-maven-plugin</artifactId>
+                <version>${quarkus.platform.version}</version>
+                <extensions>true</extensions>
+            </plugin>
+            <plugin>
+                <artifactId>maven-compiler-plugin</artifactId>
+                <version>${compiler-plugin.version}</version>
+                <configuration>
+                    <parameters>true</parameters>
+                    <!-- JDK 23+ only runs annotation processors that are listed explicitly -->
+                    <annotationProcessorPaths>
+                        <path>
+                            <groupId>org.projectlombok</groupId>
+                            <artifactId>lombok</artifactId>
+                            <version>${lombok.version}</version>
+                        </path>
+                    </annotationProcessorPaths>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-surefire-plugin</artifactId>
+                <version>${surefire-plugin.version}</version>
+                <configuration>
+                    <argLine>@{argLine}</argLine>
+                    <systemPropertyVariables>
+                        <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+                        <maven.home>${maven.home}</maven.home>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+            <plugin>
+                <artifactId>maven-failsafe-plugin</artifactId>
+                <version>${surefire-plugin.version}</version>
+                <executions>
+                    <execution>
+                        <goals>
+                            <goal>integration-test</goal>
+                            <goal>verify</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <argLine>@{argLine}</argLine>
+                    <systemPropertyVariables>
+                        <native.image.path>${project.build.directory}/${project.build.finalName}-runner</native.image.path>
+                        <java.util.logging.manager>org.jboss.logmanager.LogManager</java.util.logging.manager>
+                        <maven.home>${maven.home}</maven.home>
+                    </systemPropertyVariables>
+                </configuration>
+            </plugin>
+        </plugins>
+    </build>
+
+    <profiles>
+        <profile>
+            <id>native</id>
+            <activation>
+                <property>
+                    <name>native</name>
+                </property>
+            </activation>
+            <properties>
+                <quarkus.package.jar.enabled>false</quarkus.package.jar.enabled>
+                <skipITs>false</skipITs>
+                <quarkus.native.enabled>true</quarkus.native.enabled>
+            </properties>
+        </profile>
+    </profiles>
+</project>

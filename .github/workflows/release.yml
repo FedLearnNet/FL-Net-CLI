@@ -1,0 +1,121 @@
+name: Build and release flnet
+
+on:
+  push:
+    branches: [main]
+    tags: ["v*"]
+  pull_request:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+env:
+  # Read by Maven >= 3.9 on every invocation. The deployment files are embedded at build time.
+  MAVEN_ARGS: >-
+    -B --no-transfer-progress
+    -Dflnet.platform.bundle=${{ github.workspace }}/deps/platform/FLNET_platform
+    -Dflnet.client.bundle=${{ github.workspace }}/deps/client/FLNet_client
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/checkout-bundles
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+          cache: maven
+      - run: ./mvnw verify
+
+  native:
+    needs: test
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - { runner: ubuntu-latest, asset: flnet-linux-amd64 }
+          - { runner: ubuntu-24.04-arm, asset: flnet-linux-arm64 }
+          - { runner: macos-latest, asset: flnet-darwin-arm64 }
+          - { runner: macos-15-intel, asset: flnet-darwin-amd64 }
+    runs-on: ${{ matrix.runner }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/checkout-bundles
+      # Quarkus 3.39 native builds require GraalVM/Mandrel 25.
+      - uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: "25"
+          distribution: graalvm-community
+          cache: maven
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Set version from tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: ./mvnw versions:set -DnewVersion="${GITHUB_REF_NAME#v}" -DgenerateBackupPoms=false
+      - name: Build native executable
+        run: ./mvnw package -Dnative -DskipTests
+      - name: Smoke test
+        run: |
+          ./target/*-runner --version
+          ./target/*-runner tool create smoke --type analysis --federated --no-input -o "$RUNNER_TEMP/smoke"
+          test -f "$RUNNER_TEMP/smoke/aggregator.py"
+          ./target/*-runner client init --no-input --dir "$RUNNER_TEMP/client" --network daibetes
+          test -f "$RUNNER_TEMP/client/env/keycloak-secrets.env"
+          # macOS runners have no docker CLI
+          if [ "$RUNNER_OS" = "Linux" ]; then
+            ./target/*-runner client compose --dir "$RUNNER_TEMP/client" -o - --keep-variables | grep -q "name: fl-net-client"
+          fi
+          ./target/*-runner generate-completion > /dev/null
+          mv target/*-runner "${{ matrix.asset }}"
+      - uses: actions/upload-artifact@v4
+        with:
+          name: ${{ matrix.asset }}
+          path: ${{ matrix.asset }}
+          if-no-files-found: error
+
+  jar:
+    needs: test
+    if: startsWith(github.ref, 'refs/tags/v') || github.event_name == 'workflow_dispatch'
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: ./.github/actions/checkout-bundles
+      - uses: actions/setup-java@v4
+        with:
+          distribution: temurin
+          java-version: "25"
+          cache: maven
+      - name: Set version from tag
+        if: startsWith(github.ref, 'refs/tags/v')
+        run: ./mvnw versions:set -DnewVersion="${GITHUB_REF_NAME#v}" -DgenerateBackupPoms=false
+      - run: ./mvnw package -DskipTests -Dquarkus.package.jar.type=uber-jar
+      - run: mv target/*-runner.jar flnet.jar && java -jar flnet.jar --version
+      - uses: actions/upload-artifact@v4
+        with:
+          name: flnet.jar
+          path: flnet.jar
+          if-no-files-found: error
+
+  release:
+    needs: [native, jar]
+    if: startsWith(github.ref, 'refs/tags/v')
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/download-artifact@v4
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Checksums
+        run: |
+          cp install.sh dist/
+          cd dist && sha256sum flnet-* flnet.jar install.sh > SHA256SUMS && cat SHA256SUMS
+      - name: Publish GitHub release
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: gh release create "$GITHUB_REF_NAME" dist/* --title "flnet $GITHUB_REF_NAME" --generate-notes

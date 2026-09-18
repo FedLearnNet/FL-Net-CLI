@@ -1,0 +1,42 @@
+config:
+{#if tool.hyperparams.isEmpty}
+  hyperparams: []
+{#else}
+  hyperparams:
+{#for field in tool.hyperparams}
+  - default: '{field.defaultValue}'
+    description: {field.description}
+    name: {field.name}
+    type: {field.type}
+{/for}
+{/if}
+{#if tool.inputs.isEmpty}
+  input: []
+{#else}
+  input:
+{#for field in tool.inputs}
+  - description: {field.description}
+    hasHeader: true
+    name: {field.name}
+    required: {field.required}
+    type: {field.type}
+{/for}
+{/if}
+{#if tool.outputs.isEmpty}
+  output: []
+{#else}
+  output:
+{#for field in tool.outputs}
+  - description: {field.description}
+    name: {field.name}
+    required: {field.required}
+    type: {field.type}
+{/for}
+{/if}
+info:
+  longDescription: null
+  name: {tool.nameYaml}
+  shortDescription: {tool.descriptionYaml}
+  slug: {tool.slug}
+  sourceUrl: {tool.sourceUrlYaml}
+  type: {tool.type}
