@@ -1,6 +1,6 @@
 package bio.cosy.flnet.cli;
 
-import bio.cosy.flnet.cli.support.EnvFile;
+import bio.cosy.flnet.cli.helper.EnvFileHelper;
 import io.quarkus.test.junit.main.LaunchResult;
 import io.quarkus.test.junit.main.QuarkusMainLauncher;
 import io.quarkus.test.junit.main.QuarkusMainTest;
@@ -18,7 +18,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotEquals;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** Several named clients and platforms on one machine. */
 @QuarkusMainTest
 class InstancesTest {
 
@@ -38,7 +37,7 @@ class InstancesTest {
     @Test
     void secondClientNeedsANameAndGetsItsOwnPortAndProject(QuarkusMainLauncher launcher) throws IOException {
         assertEquals(0, launcher.launch("client", "init", "--no-input", "--network", "daibetes").exitCode());
-        Map<String, String> first = EnvFile.read(home.resolve("clients/default/.env"));
+        Map<String, String> first = EnvFileHelper.read(home.resolve("clients/default/.env"));
         assertEquals("fl-net-client", first.get("COMPOSE_PROJECT_NAME"));
         assertEquals("default", first.get("FLNET_INSTANCE_NAME"));
 
@@ -49,7 +48,7 @@ class InstancesTest {
 
         LaunchResult named = launcher.launch("client", "init", "--no-input", "--network", "daibetes", "--name", "site-b");
         assertEquals(0, named.exitCode(), named.getErrorOutput());
-        Map<String, String> second = EnvFile.read(home.resolve("clients/site-b/.env"));
+        Map<String, String> second = EnvFileHelper.read(home.resolve("clients/site-b/.env"));
         assertEquals("fl-net-client-site-b", second.get("COMPOSE_PROJECT_NAME"));
         assertNotEquals(first.get("EXPOSED_PORT"), second.get("EXPOSED_PORT"));
         // container names follow the project, so both clients can run side by side
@@ -69,7 +68,7 @@ class InstancesTest {
         LaunchResult platform = launcher.launch("platform", "init", "--no-input", "--domain", "https://fl.example.org",
                 "--bind-ip", "0.0.0.0", "--ssl-cert", cert.toString(), "--ssl-key", cert.toString());
         assertEquals(0, platform.exitCode(), platform.getErrorOutput());
-        String nginxPort = EnvFile.read(home.resolve("platforms/default/.env")).get("NGINX_PORT").replace("0.0.0.0:", "");
+        String nginxPort = EnvFileHelper.read(home.resolve("platforms/default/.env")).get("NGINX_PORT").replace("0.0.0.0:", "");
         assertNotEquals(first.get("EXPOSED_PORT"), nginxPort);
         assertNotEquals(second.get("EXPOSED_PORT"), nginxPort);
     }
@@ -117,7 +116,7 @@ class InstancesTest {
         assertTrue(help.getOutput().replaceAll("\\s+", " ").contains("Network to join: flnet, microbaiome, daibetes,"), help.getOutput());
 
         assertEquals(0, launcher.launch("client", "init", "--no-input", "--network", "microbaiome").exitCode());
-        Map<String, String> env = EnvFile.read(home.resolve("clients/default/.env"));
+        Map<String, String> env = EnvFileHelper.read(home.resolve("clients/default/.env"));
         assertEquals("microb-ai-net.federated-learning.net", env.get("GLOBAL_DOMAIN"));
         assertEquals("9154", env.get("GLOBAL_TCP_PORT"));
         assertEquals("ghcr.io/fedlearnnet/frontends/local-microbaiome:latest", env.get("FRONTEND_IMAGE"));

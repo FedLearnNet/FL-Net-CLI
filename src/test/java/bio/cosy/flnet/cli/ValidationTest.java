@@ -1,9 +1,9 @@
 package bio.cosy.flnet.cli;
 
-import bio.cosy.flnet.cli.base.FLNetClientDeployment;
-import bio.cosy.flnet.cli.base.FLNetClientDeployment.AutoAccess;
-import bio.cosy.flnet.cli.base.FLNetClientDeployment.SslSource;
-import bio.cosy.flnet.cli.support.CliException;
+import bio.cosy.flnet.cli.base.deployment.FLNetClientDeployment;
+import bio.cosy.flnet.cli.base.deployment.AutoAccess;
+import bio.cosy.flnet.cli.base.deployment.SslSource;
+import bio.cosy.flnet.cli.helper.CliException;
 import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import jakarta.validation.Validator;
@@ -16,7 +16,6 @@ import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** The validator Quarkus injects applies field constraints and the @AssertTrue rules of the model. */
 @QuarkusTest
 class ValidationTest {
 

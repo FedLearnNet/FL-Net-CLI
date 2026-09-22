@@ -1,6 +1,9 @@
 package bio.cosy.flnet.cli.base;
 
-import bio.cosy.flnet.cli.support.WebAddress;
+import bio.cosy.flnet.cli.base.tool.FLNetTool;
+import bio.cosy.flnet.cli.base.tool.FLNetToolField;
+import bio.cosy.flnet.cli.base.tool.ToolType;
+import bio.cosy.flnet.cli.helper.WebAddress;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;

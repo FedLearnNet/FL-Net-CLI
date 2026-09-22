@@ -107,6 +107,10 @@ flnet.client.default-network=hospital
 Then `flnet client init --network hospital` joins it. The instances home can be moved with `flnet.home`
 (or `$FLNET_HOME`).
 
+Platform and client web addresses use `http://host[:port]` or `https://host[:port]`, with an optional
+trailing `/`. Hosts can be domain names (including punycode), `localhost`, or dotted-quad IPv4 addresses.
+Paths, credentials, queries, fragments, IPv6, and IPv4 addresses with leading zeros are not supported.
+
 ## Generate a docker compose file
 
 `init` writes a regular docker compose project (`docker-compose.yml`, `.env`, `env/*.env`, nginx and
@@ -166,10 +170,13 @@ TEST_MODE=true python main.py      # offline run with generated test data
 Requirements: JDK 25 and Maven (wrapper included), e.g.
 `export JAVA_HOME=/opt/homebrew/opt/openjdk@25/libexec/openjdk.jdk/Contents/Home`.
 Native builds need GraalVM/Mandrel 25, or Docker for a container build.
-The platform and client deployment files are embedded at build time from the sibling repositories
-`../FL-Net-Platform-Deployment/FLNET_platform` and `../FL-Net-Client-Deployment/FLNet_client`
-(override with `-Dflnet.platform.bundle=...` / `-Dflnet.client.bundle=...`). Secrets, `.env` files,
-certificates and local data are always excluded.
+The repository builds on its own: platform and client deployment files live in
+`src/main/resources/bundles/platform` and `src/main/resources/bundles/client` and are embedded at
+build time. No deployment repository checkout or download is needed. These files were initially
+copied from `FL-Net-Platform-Deployment/FLNET_platform` and `FL-Net-Client-Deployment/FLNet_client`;
+maintain the copies here when changing the CLI's default deployments. Maven generates the bundle
+manifests automatically and excludes secrets, `.env` files, certificates and local data.
+Custom build sources can still be selected with `-Dflnet.platform.bundle=...` / `-Dflnet.client.bundle=...`.
 
 ```bash
 ./mvnw quarkus:dev -Dquarkus.args='tool create demo --no-input'   # dev mode
@@ -179,15 +186,22 @@ certificates and local data are always excluded.
 ./mvnw package -Dnative -Dquarkus.native.container-build=true      # native binary via Docker
 ```
 
-To try deployment files from a local checkout without rebuilding, pass the hidden
-`--bundle-dir ../FL-Net-Client-Deployment/FLNet_client` option to `init`.
+To try edited deployment files without rebuilding, pass the hidden
+`--bundle-dir src/main/resources/bundles/client` option to `client init`
+(or the platform directory to `platform init`). Existing deployment files are preserved unless
+`--refresh-files` is also passed.
 
 ### Architecture
 
-Three layers, as in the Learning-APIs:
+`bio.cosy.flnet.cli` contains only `FlnetCommand`, the picocli root command. Quarkus supplies the
+application launcher; commands and supporting classes live in their feature packages. Each feature package
+splits by role into `bo`, `command`, `config` and `questionnaire` subpackages (only those it needs); models,
+enums and helpers stay in the feature package itself.
 
-- **Model** (`model`): one object per set-up thing that holds all its settings and secrets. The base classes
-  carry shared helpers and validation (`validate()` collects every problem, `requireValid()` fails with all of them):
+Three layers, as in the Learning-APIs, with shared technical helpers:
+
+- **Model** (`base`): one object per set-up thing that holds all its settings and secrets. The base classes
+  carry shared helpers and validation (`problems()` collects every problem, `requireValid()` fails with all of them):
 
   ```
   BaseFLNet                                  name, directory, validation helpers
@@ -202,18 +216,45 @@ Three layers, as in the Learning-APIs:
   from the current values, and saving writes exactly those files again.
 - **Business objects** (`*BO`, `@ApplicationScoped`): `BaseFLNetDeploymentBO<T>` (listing, selection, create-or-reconfigure,
   port planning, saving), `FLNetClientDeploymentBO`, `FLNetPlatformDeploymentBO`, `FLNetDeploymentsBO` (both kinds),
-  `ComposeBO` (docker compose) and `FLNetToolBO` (rendering).
-- **Commands** (picocli): ask for missing values, fill the model, call the BO, print the result.
+  `ComposeBO` (docker compose), `FLNetToolBO` (rendering), and `FLNetNetworkBO` (configured network
+  selection and frontend images).
+- **Config** (`*Config`, Lombok, picocli mixins): the settings of `init` exactly as given on the command line;
+  every field is `null` until given.
+- **Questionnaires** (`*Questionnaire`, `@ApplicationScoped`): resolve every setting of a `*Config` step by step:
+  a given value wins, otherwise the user is asked, and with `--no-input`/`--no-interactive` (or without a
+  terminal) the default is used. Answers go straight into the model, so later defaults build on them.
+- **Commands** (picocli): thin; select the instance, run the questionnaire, call the BO, print the result.
+- **Helpers** (`*Helper`): static technical operations such as env-file I/O, secret generation,
+  process execution and console output. Stateful collaborators such as `Prompter` and `PortPlanner`
+  keep their descriptive names.
 
 | Package    | Content                                                                              |
 |------------|--------------------------------------------------------------------------------------|
-| `model`    | the model classes above, `DeploymentKind`, `ToolType`, `FLNetToolField`              |
-| `config`   | `FLNetCliConfig` (all `flnet.*` settings), configured networks and frontend images   |
-| `deploy`   | base/cross-kind BOs, `ComposeBO`, port planning, embedded bundles, shared commands   |
-| `client`   | `FLNetClientDeploymentBO`, `client init`, `client certs`                              |
-| `platform` | `FLNetPlatformDeploymentBO`, `platform init`                                          |
-| `tool`     | `FLNetToolBO`, `tool create`; templates in `src/main/resources/templates/tool` (Qute)|
-| `support`  | prompting (flags, then prompt, then default), `.env` files, address validation      |
+| `base`     | the model classes above, `DeploymentKind`, `ToolType`, `FLNetToolField`, `.env` variable enums |
+| `config`   | `CommandLineProducer`, `FLNetCliConfig` (all `flnet.*` settings)                     |
+| `network`  | `FLNetNetwork`; `bo`: `FLNetNetworkBO` (configured networks, frontend images)          |
+| `deploy`   | `PortPlanner`, embedded bundles, reports; `bo`: base/cross-kind BOs, `ComposeBO`; `command`: shared commands and `BaseInitCommand`; `config`/`questionnaire`: their base classes |
+| `client`   | `ClientInitMode`; `bo`: deployment and certificate BOs; `command`: `client`, `init`, `certs`; `config`: `ClientConfig`, `CertificateConfig`; `questionnaire`: client and certificate questions, setup warnings |
+| `platform` | `bo`, `command` (`platform`, `init`), `config` (`PlatformConfig`), `questionnaire`      |
+| `tool`     | `bo`: `FLNetToolBO`; `command`: `tool create`; templates in `src/main/resources/templates/tool` (Qute)|
+| `diagnostics` | `command`: `doctor` prerequisite checks                                           |
+| `support`  | version reporting, prompting (flags, then prompt, then default), `.env` files, address validation |
+| `migration` | JSON task POJOs, preview and version tracking; `bo`: `FLNetMigrationBO`; `command`: `migrate` |
+
+### Deployment migrations
+
+```bash
+flnet migrate --kind client --name hospital-a --dry-run  # explain pending changes
+flnet migrate --kind client --name hospital-a            # confirm and migrate to newest bundled revision
+flnet migrate --kind platform --dir /srv/flnet --yes --no-input
+```
+
+The JSON catalog lists each revision's tasks and explains what will change. The command previews
+those tasks, asks for confirmation, applies them and records the completed revision. Older deployments
+without a recorded version need `--from <revision>`. There are no backups or automatic recovery;
+containers are not restarted. The catalog currently starts at revision 1 with no production upgrade
+tasks yet. See the [JSON migration guide](docs/migrations.md) and
+`src/main/resources/migrations/catalog.json`.
 
 ## Releasing
 

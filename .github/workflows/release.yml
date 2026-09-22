@@ -11,18 +11,13 @@ permissions:
   contents: read
 
 env:
-  # Read by Maven >= 3.9 on every invocation. The deployment files are embedded at build time.
-  MAVEN_ARGS: >-
-    -B --no-transfer-progress
-    -Dflnet.platform.bundle=${{ github.workspace }}/deps/platform/FLNET_platform
-    -Dflnet.client.bundle=${{ github.workspace }}/deps/client/FLNet_client
+  MAVEN_ARGS: -B --no-transfer-progress
 
 jobs:
   test:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/checkout-bundles
       - uses: actions/setup-java@v4
         with:
           distribution: temurin
@@ -44,7 +39,6 @@ jobs:
     runs-on: ${{ matrix.runner }}
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/checkout-bundles
       # Quarkus 3.39 native builds require GraalVM/Mandrel 25.
       - uses: graalvm/setup-graalvm@v1
         with:
@@ -64,6 +58,7 @@ jobs:
           test -f "$RUNNER_TEMP/smoke/aggregator.py"
           ./target/*-runner client init --no-input --dir "$RUNNER_TEMP/client" --network daibetes
           test -f "$RUNNER_TEMP/client/env/keycloak-secrets.env"
+          ./target/*-runner migrate --kind client --dir "$RUNNER_TEMP/client" --dry-run --no-input
           # macOS runners have no docker CLI
           if [ "$RUNNER_OS" = "Linux" ]; then
             ./target/*-runner client compose --dir "$RUNNER_TEMP/client" -o - --keep-variables | grep -q "name: fl-net-client"
@@ -82,7 +77,6 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v4
-      - uses: ./.github/actions/checkout-bundles
       - uses: actions/setup-java@v4
         with:
           distribution: temurin

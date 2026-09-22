@@ -1,0 +1,32 @@
+package bio.cosy.flnet.cli.client.command;
+
+import bio.cosy.flnet.cli.base.deployment.DeploymentKind;
+import bio.cosy.flnet.cli.deploy.command.ComposeCommands;
+import bio.cosy.flnet.cli.deploy.command.DeploymentGroup;
+import bio.cosy.flnet.cli.deploy.command.InstanceCommands;
+import picocli.CommandLine.Command;
+
+@Command(name = "client",
+        description = "Set up and operate a FL-Net Client (a site that contributes data to a network).",
+        subcommands = {
+                ClientInitCommand.class,
+                ClientCertsCommand.class,
+                InstanceCommands.ListInstances.class,
+                InstanceCommands.Info.class,
+                ComposeCommands.Up.class,
+                ComposeCommands.Down.class,
+                ComposeCommands.Pull.class,
+                ComposeCommands.Stop.class,
+                ComposeCommands.Restart.class,
+                ComposeCommands.Clean.class,
+                ComposeCommands.Status.class,
+                ComposeCommands.Logs.class,
+                ComposeCommands.Compose.class,
+        })
+public class ClientCommand implements DeploymentGroup {
+
+    @Override
+    public DeploymentKind kind() {
+        return DeploymentKind.CLIENT;
+    }
+}

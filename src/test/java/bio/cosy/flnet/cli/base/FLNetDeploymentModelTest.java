@@ -1,8 +1,9 @@
 package bio.cosy.flnet.cli.base;
 
-import bio.cosy.flnet.cli.base.FLNetClientDeployment.AutoAccess;
-import bio.cosy.flnet.cli.base.FLNetClientDeployment.SslSource;
-import bio.cosy.flnet.cli.support.WebAddress;
+import bio.cosy.flnet.cli.base.deployment.*;
+import bio.cosy.flnet.cli.helper.NetworkHelper;
+import bio.cosy.flnet.cli.helper.WebAddress;
+import bio.cosy.flnet.cli.platform.config.PersistentPlatformConfig;
 import org.junit.jupiter.api.Test;
 
 import java.nio.file.Path;
@@ -13,10 +14,51 @@ import java.util.Map;
 import static bio.cosy.flnet.cli.base.TestValidator.VALIDATOR;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNull;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
-/** Saving writes .env/secret files, loading must restore every setting from them. */
 class FLNetDeploymentModelTest {
+
+    @Test
+    void modelAndPromptIpv4ValidationAgree() {
+        FLNetClientDeployment client = new FLNetClientDeployment();
+        FLNetPlatformDeployment platform = new FLNetPlatformDeployment();
+        for (String ip : List.of("0.0.0.0", "127.0.0.1", "192.168.1.100", "255.255.255.255")) {
+            assertTrue(NetworkHelper.isIpv4(ip), ip);
+            assertTrue(VALIDATOR.validateValue(PersistentPlatformConfig.class, "bindIp", ip).isEmpty(), ip);
+            client.setListen(ip);
+            assertTrue(VALIDATOR.validateProperty(client, "bindIp").isEmpty(), ip);
+        }
+        for (String ip : List.of("1.2.3", "8250", "010.0.0.1", "256.1.1.1", "::1", "1.2.3.4.", "", "１.2.3.4")) {
+            assertFalse(NetworkHelper.isIpv4(ip), ip);
+            assertFalse(VALIDATOR.validateValue(PersistentPlatformConfig.class, "bindIp", ip).isEmpty(), ip);
+            client.setListen(ip);
+            assertFalse(VALIDATOR.validateProperty(client, "bindIp").isEmpty(), ip);
+        }
+        client.setListen("localhost");
+        platform.setBindIp("localhost");
+        assertTrue(VALIDATOR.validateProperty(client, "bindIp").isEmpty());
+        assertTrue(VALIDATOR.validateProperty(platform, "config.bindIp").isEmpty());
+    }
+
+    @Test
+    void portConstraintsKeepTheirBoundsAndMessages() {
+        FLNetClientDeployment client = new FLNetClientDeployment();
+        for (int port : new int[]{1, 65535}) {
+            client.setPort(port);
+            client.setPlatformRelayPort(port);
+            assertTrue(VALIDATOR.validateProperty(client, "ports").isEmpty());
+            assertTrue(VALIDATOR.validateProperty(client, "platformRelayPort").isEmpty());
+        }
+        for (int port : new int[]{0, 65536}) {
+            client.setPort(port);
+            client.setPlatformRelayPort(port);
+            assertEquals("Ports must be between 1 and 65535.",
+                    VALIDATOR.validateProperty(client, "ports").iterator().next().getMessage());
+            assertEquals("The platform relay port must be between 1 and 65535.",
+                    VALIDATOR.validateProperty(client, "platformRelayPort").iterator().next().getMessage());
+        }
+    }
 
     @Test
     void clientRoundTripsThroughItsFiles() {
@@ -71,6 +113,35 @@ class FLNetDeploymentModelTest {
     }
 
     @Test
+    void legacyKeycloakPasswordFallbackIsClientOnly() {
+        FLNetClientDeployment client = client();
+        Map<String, Map<String, String>> files = client.toSecretFiles();
+        Map<String, String> keycloak = files.get(BaseFLNetDeployableInstance.KEYCLOAK_SECRETS);
+        String password = keycloak.remove("KC_DB_PASSWORD");
+        keycloak.put("KC_BOOTSTRAP_ADMIN_USERNAME", " ");
+        client.fromSecretFiles(files);
+        assertEquals(password, client.getKeycloakDbPassword());
+        assertEquals("keycloak-admin", client.getKeycloakAdminUsername());
+        assertTrue(client.hasSecrets());
+
+        FLNetPlatformDeployment platform = new FLNetPlatformDeployment();
+        platform.setKeycloakAdminUsername("platform-admin");
+        platform.fromSecretFiles(files);
+        assertNull(platform.getKeycloakDbPassword());
+        assertEquals("platform-admin", platform.getKeycloakAdminUsername());
+        assertFalse(platform.hasSecrets());
+
+        keycloak.put("KC_DB_PASSWORD", "current-password");
+        client.fromSecretFiles(files);
+        assertEquals("current-password", client.getKeycloakDbPassword());
+        client.clearSecrets();
+        assertFalse(client.hasSecrets());
+        assertNull(client.getOrchDbPassword());
+        assertNull(client.getKeycloakDbPassword());
+        assertNull(client.getKeycloakAdminPassword());
+    }
+
+    @Test
     void platformRoundTripsAndChecksPorts() {
         FLNetPlatformDeployment platform = new FLNetPlatformDeployment();
         platform.setName("default");
@@ -108,7 +179,6 @@ class FLNetDeploymentModelTest {
         assertTrue(errors.stream().anyMatch(e -> e.contains("must terminate SSL")), errors.toString());
     }
 
-    /** Every written variable has an enum constant (with its description as .env comment) and vice versa. */
     private static void assertDescribesExactlyItsEnv(BaseFLNetDeployableInstance instance) {
         assertEquals(new java.util.TreeSet<>(instance.toEnv().keySet()),
                 new java.util.TreeSet<>(instance.envComments().keySet()));
