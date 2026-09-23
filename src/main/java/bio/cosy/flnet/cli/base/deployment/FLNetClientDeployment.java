@@ -56,7 +56,6 @@ public class FLNetClientDeployment extends BaseFLNetDeployableInstance {
         return getDeployedOnAddress();
     }
 
-    // ---------------------------------------------------------------- derived values
 
     @IpAddress(type = IpAddress.Type.IPv4, message = "The listen address must be 'localhost' or an IPv4 address.")
     public String getBindIp() {
@@ -110,14 +109,12 @@ public class FLNetClientDeployment extends BaseFLNetDeployableInstance {
         }
     }
 
-    // ---------------------------------------------------------------- validation
 
     @AssertTrue(message = "SSL termination in the client requires a domain.")
     boolean isDomainSetForSsl() {
         return sslSource == SslSource.NONE || domain != null;
     }
 
-    // ---------------------------------------------------------------- secrets
 
     @Override
     public void generateSecrets(int length, int adminPasswordLength) {
@@ -177,7 +174,6 @@ public class FLNetClientDeployment extends BaseFLNetDeployableInstance {
         setPlatformPassword(PersistentClientConfig.NO_AUTH_CREDENTIAL.equals(password) ? null : password);
     }
 
-    // ---------------------------------------------------------------- .env
 
     @Override
     public List<EnvVariable> getEnvVariables() {

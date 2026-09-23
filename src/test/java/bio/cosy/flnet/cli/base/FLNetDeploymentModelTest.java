@@ -1,20 +1,28 @@
 package bio.cosy.flnet.cli.base;
 
 import bio.cosy.flnet.cli.base.deployment.*;
+import bio.cosy.flnet.cli.helper.CliException;
+import bio.cosy.flnet.cli.helper.EnvFileHelper;
 import bio.cosy.flnet.cli.helper.NetworkHelper;
 import bio.cosy.flnet.cli.helper.WebAddress;
 import bio.cosy.flnet.cli.platform.config.PersistentPlatformConfig;
 import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.io.TempDir;
 
+import java.io.IOException;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Set;
 
 import static bio.cosy.flnet.cli.base.TestValidator.VALIDATOR;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertNull;
+import static org.junit.jupiter.api.Assertions.assertThrows;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class FLNetDeploymentModelTest {
@@ -179,6 +187,135 @@ class FLNetDeploymentModelTest {
         assertTrue(errors.stream().anyMatch(e -> e.contains("must terminate SSL")), errors.toString());
     }
 
+    @Test
+    void deploymentKindExposesItsBundleFolderAndDisplayName() {
+        assertEquals("client", DeploymentKind.CLIENT.bundle());
+        assertEquals("clients", DeploymentKind.CLIENT.folder());
+        assertEquals("FL-Net Client", DeploymentKind.CLIENT.displayName());
+        assertEquals("platform", DeploymentKind.PLATFORM.bundle());
+        assertEquals("platforms", DeploymentKind.PLATFORM.folder());
+        assertEquals("FL-Net Platform", DeploymentKind.PLATFORM.displayName());
+
+        FLNetClientDeployment client = new FLNetClientDeployment();
+        assertEquals(DeploymentKind.CLIENT, client.getKind());
+        assertEquals("client", client.getTypeLabel());
+
+        FLNetPlatformDeployment platform = new FLNetPlatformDeployment();
+        assertEquals(DeploymentKind.PLATFORM, platform.getKind());
+        assertEquals("platform", platform.getTypeLabel());
+    }
+
+    @Test
+    void validateNameEnforcesTheNamePattern() {
+        assertNotNull(BaseFLNetDeployableInstance.validateName(null));
+        assertNotNull(BaseFLNetDeployableInstance.validateName(""));
+        assertNotNull(BaseFLNetDeployableInstance.validateName("Site_A"));
+        assertNotNull(BaseFLNetDeployableInstance.validateName("-site-a"));
+        assertNull(BaseFLNetDeployableInstance.validateName("site-a"));
+        assertNull(BaseFLNetDeployableInstance.validateName("a"));
+    }
+
+    @Test
+    void isInitializedTracksTheEnvAndComposeFiles(@TempDir Path dir) throws IOException {
+        FLNetClientDeployment client = new FLNetClientDeployment();
+        client.setDirectory(dir);
+        assertFalse(client.isInitialized());
+        assertThrows(CliException.class, client::requireInitialized);
+
+        Files.writeString(dir.resolve(".env"), "");
+        assertFalse(client.isInitialized(), "the compose file is still missing");
+
+        Files.writeString(dir.resolve("docker-compose.yml"), "");
+        assertTrue(client.isInitialized());
+        client.requireInitialized();
+    }
+
+    @Test
+    void requireInitializedNamesTheKindAndDirectory(@TempDir Path dir) {
+        FLNetPlatformDeployment platform = new FLNetPlatformDeployment();
+        platform.setDirectory(dir);
+        CliException error = assertThrows(CliException.class, platform::requireInitialized);
+        assertEquals(CliException.ENVIRONMENT, error.exitCode());
+        assertTrue(error.getMessage().contains("FL-Net Platform"), error.getMessage());
+        assertTrue(error.getMessage().contains(dir.toString()), error.getMessage());
+        assertTrue(error.getMessage().contains("flnet platform init"), error.getMessage());
+    }
+
+    @Test
+    void missingCertificatesListsOnlyAbsentSslFiles(@TempDir Path dir) throws IOException {
+        FLNetClientDeployment client = new FLNetClientDeployment();
+        assertTrue(client.getMissingCertificates().isEmpty(), "SSL disabled: nothing is missing");
+
+        Path certificate = dir.resolve("fullchain.pem");
+        Path privateKey = dir.resolve("privkey.pem");
+        client.setSslEnabled(true);
+        client.setSslCertificate(certificate);
+        client.setSslPrivateKey(privateKey);
+        assertEquals(List.of(certificate, privateKey), client.getMissingCertificates());
+
+        Files.writeString(certificate, "cert");
+        assertEquals(List.of(privateKey), client.getMissingCertificates());
+
+        Files.writeString(privateKey, "key");
+        assertTrue(client.getMissingCertificates().isEmpty());
+    }
+
+    @Test
+    void sslFilesMustBothBeSetWhenSslIsEnabled() {
+        FLNetPlatformDeployment platform = platform();
+        platform.setSslCertificate(Path.of("/etc/ssl/fullchain.pem"));
+        platform.setSslPrivateKey(null);
+        assertTrue(platform.problems(VALIDATOR).stream()
+                .anyMatch(e -> e.contains("certificate or private key is not set")), platform.problems(VALIDATOR).toString());
+
+        platform.setSslPrivateKey(Path.of("/etc/ssl/privkey.pem"));
+        assertTrue(platform.problems(VALIDATOR).stream()
+                .noneMatch(e -> e.contains("certificate or private key is not set")), platform.problems(VALIDATOR).toString());
+    }
+
+    @Test
+    void certificateIsRequiredForThePlatformRelay() {
+        FLNetPlatformDeployment platform = platform();
+        platform.setSslCertificate(null);
+        platform.setSslPrivateKey(null);
+        assertTrue(platform.problems(VALIDATOR).stream()
+                .anyMatch(e -> e.contains("CA-signed certificate")), platform.problems(VALIDATOR).toString());
+    }
+
+    @Test
+    void secretFileNamesMatchTheWrittenFiles() {
+        FLNetClientDeployment client = client();
+        assertEquals(client.toSecretFiles().keySet(), client.getSecretFileNames());
+        assertEquals(Set.of(BaseFLNetDeployableInstance.ORCH_SECRETS, FLNetClientDeployment.LEARNING_SECRETS,
+                BaseFLNetDeployableInstance.KEYCLOAK_SECRETS), client.getSecretFileNames());
+
+        FLNetPlatformDeployment platform = platform();
+        assertEquals(platform.toSecretFiles().keySet(), platform.getSecretFileNames());
+        assertEquals(Set.of(FLNetPlatformDeployment.DATAMODELER_SECRETS, FLNetPlatformDeployment.GLOBAL_LEARNING_SECRETS,
+                BaseFLNetDeployableInstance.ORCH_SECRETS, BaseFLNetDeployableInstance.KEYCLOAK_SECRETS), platform.getSecretFileNames());
+    }
+
+    @Test
+    void loadReadsBackWhatWasWrittenToDisk(@TempDir Path dir) {
+        FLNetClientDeployment client = client();
+        client.setDirectory(dir);
+
+        EnvFileHelper.write(client.getEnvFile(), client.toEnv(), client.envComments());
+        client.toSecretFiles().forEach((file, variables) -> EnvFileHelper.write(client.getSecretsDirectory().resolve(file), variables));
+
+        FLNetClientDeployment loaded = new FLNetClientDeployment();
+        loaded.setDirectory(dir);
+        // keycloakRealmPath is a bundle-level default applied by the BO's create() before load(),
+        // not part of the persisted .env, so the caller must set it before loading, same as production.
+        loaded.setKeycloakRealmPath(client.getKeycloakRealmPath());
+        loaded.load();
+
+        assertEquals(client.getName(), loaded.getName());
+        assertEquals(client.getPlatformUsername(), loaded.getPlatformUsername());
+        assertEquals(client.toEnv().toString(), loaded.toEnv().toString());
+        assertEquals(client.toSecretFiles(), loaded.toSecretFiles());
+    }
+
     private static void assertDescribesExactlyItsEnv(BaseFLNetDeployableInstance instance) {
         assertEquals(new java.util.TreeSet<>(instance.toEnv().keySet()),
                 new java.util.TreeSet<>(instance.envComments().keySet()));
@@ -202,6 +339,26 @@ class FLNetDeploymentModelTest {
         client.setQuerySampleThreshold(100);
         client.generateSecrets(64, 16);
         return client;
+    }
+
+    private static FLNetPlatformDeployment platform() {
+        FLNetPlatformDeployment platform = new FLNetPlatformDeployment();
+        platform.setName("default");
+        platform.setDirectory(Path.of("/tmp/flnet/platforms/default"));
+        platform.setProjectName("fl-net-platform");
+        platform.setImageTag("latest");
+        platform.setFrontendImage("ghcr.io/fedlearnnet/frontends/global-fl-net:latest");
+        platform.setKeycloakAdminUsername("admin");
+        platform.setDomain(WebAddress.parse("https://fl.example.org"));
+        platform.setBindIp("0.0.0.0");
+        platform.setNginxPort(8250);
+        platform.setRelayPort(9150);
+        platform.setMinClients(3);
+        platform.setSslEnabled(true);
+        platform.setSslCertificate(Path.of("/etc/ssl/fullchain.pem"));
+        platform.setSslPrivateKey(Path.of("/etc/ssl/privkey.pem"));
+        platform.generateSecrets(64, 16);
+        return platform;
     }
 
     private static Map<String, String> asStrings(Map<String, Object> env) {

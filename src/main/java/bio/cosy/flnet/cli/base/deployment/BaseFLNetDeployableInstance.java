@@ -60,7 +60,6 @@ public abstract class BaseFLNetDeployableInstance extends BaseFLNet {
 
     public abstract String getAddress();
 
-    // ---------------------------------------------------------------- files
 
     public Path getEnvFile() {
         return resolve(".env");
@@ -97,7 +96,6 @@ public abstract class BaseFLNetDeployableInstance extends BaseFLNet {
         return missing;
     }
 
-    // ---------------------------------------------------------------- serialization
 
     public abstract Map<String, Object> toEnv();
 
@@ -170,7 +168,6 @@ public abstract class BaseFLNetDeployableInstance extends BaseFLNet {
         fromSecretFiles(secrets);
     }
 
-    // ---------------------------------------------------------------- validation
 
     public static String validateName(String name) {
         return name != null && name.matches(NAME_REGEX) ? null : NAME_RULE;
@@ -192,7 +189,6 @@ public abstract class BaseFLNetDeployableInstance extends BaseFLNet {
         return !sslEnabled || (sslCertificate != null && sslPrivateKey != null);
     }
 
-    // ---------------------------------------------------------------- helpers
 
     protected static void put(Map<String, Object> env, EnvVariable variable, Object value) {
         env.put(variable.key(), value);

@@ -43,7 +43,6 @@ public class FLNetPlatformDeployment extends BaseFLNetDeployableInstance {
         return getDomain() == null ? "?" : getDomain().toString();
     }
 
-    // ---------------------------------------------------------------- validation
 
     @AssertTrue(message = "A certificate and private key are required: the relay uses TLS with a CA-signed certificate.")
     boolean isCertificateSet() {
@@ -55,7 +54,6 @@ public class FLNetPlatformDeployment extends BaseFLNetDeployableInstance {
         return isSslEnabled() || isBehindReverseProxy();
     }
 
-    // ---------------------------------------------------------------- secrets
 
     @Override
     public void generateSecrets(int length, int adminPasswordLength) {
@@ -104,7 +102,6 @@ public class FLNetPlatformDeployment extends BaseFLNetDeployableInstance {
         setGlobalLearningDbPassword(secretOrNull(files, GLOBAL_LEARNING_SECRETS, CommonSecretEnv.POSTGRES_PASSWORD.key()));
     }
 
-    // ---------------------------------------------------------------- .env
 
     @Override
     public List<EnvVariable> getEnvVariables() {

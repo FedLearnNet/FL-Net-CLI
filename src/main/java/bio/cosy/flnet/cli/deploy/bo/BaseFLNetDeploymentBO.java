@@ -48,7 +48,6 @@ public abstract class BaseFLNetDeploymentBO<T extends BaseFLNetDeployableInstanc
     protected void afterLoad(T instance) {
     }
 
-    // ---------------------------------------------------------------- locations
 
     public Path home() {
         return config.home().filter(h -> !h.isBlank())
@@ -64,7 +63,6 @@ public abstract class BaseFLNetDeploymentBO<T extends BaseFLNetDeployableInstanc
         return BaseFLNetDeployableInstance.DEFAULT_NAME.equals(instanceName) ? baseProjectName() : baseProjectName() + "-" + instanceName;
     }
 
-    // ---------------------------------------------------------------- lookup
 
     public T newInstance(String name, Path directory) {
         T instance = create();
@@ -184,7 +182,6 @@ public abstract class BaseFLNetDeploymentBO<T extends BaseFLNetDeployableInstanc
         return prompter.text("--name", null, "Name", null, BaseFLNetDeployableInstance::validateName);
     }
 
-    // ---------------------------------------------------------------- ports
 
     public PortPlanner portPlanner(T instance) {
         List<BaseFLNetDeployableInstance> others = deployments.listAll().stream()
@@ -193,7 +190,6 @@ public abstract class BaseFLNetDeploymentBO<T extends BaseFLNetDeployableInstanc
         return new PortPlanner(instance, others);
     }
 
-    // ---------------------------------------------------------------- saving
 
     public DeploymentBundleHelper.InstallResult save(T instance, boolean refreshFiles, Path bundleDir) {
         migrations.requireCompatibleForInit(kind(), instance.getDirectory());
@@ -263,7 +259,6 @@ public abstract class BaseFLNetDeploymentBO<T extends BaseFLNetDeployableInstanc
         }
     }
 
-    // ---------------------------------------------------------------- presentation helpers
 
     public String nameFlag(BaseFLNetDeployableInstance instance) {
         List<T> all = list();

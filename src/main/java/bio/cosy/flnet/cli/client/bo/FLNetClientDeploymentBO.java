@@ -65,7 +65,6 @@ public class FLNetClientDeploymentBO extends BaseFLNetDeploymentBO<FLNetClientDe
                 .allMatch(file -> Files.exists(client.getSecretsDirectory().resolve(file)));
     }
 
-    // ---------------------------------------------------------------- network
 
     public void applyNetwork(FLNetClientDeployment client, FLNetNetwork network) {
         client.setNetworkKey(network.getKey());
@@ -85,7 +84,6 @@ public class FLNetClientDeploymentBO extends BaseFLNetDeploymentBO<FLNetClientDe
         }
     }
 
-    // ---------------------------------------------------------------- saving
 
     @Override
     protected void afterSave(FLNetClientDeployment client) {
@@ -109,7 +107,6 @@ public class FLNetClientDeploymentBO extends BaseFLNetDeploymentBO<FLNetClientDe
         }
     }
 
-    // ---------------------------------------------------------------- next steps
 
     public List<String> nextSteps(FLNetClientDeployment client, ClientInitMode mode) {
         String flag = nameFlag(client);

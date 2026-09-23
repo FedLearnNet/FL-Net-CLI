@@ -37,8 +37,16 @@ public class PersistentToolConfig {
         return toolType.hasConfigModule();
     }
 
+    public List<FLNetToolField> getHyperparams() {
+        return toolType.hyperparams(federated);
+    }
+
     public List<FLNetToolField> getInputs() {
         return toolType.inputs();
+    }
+
+    public List<FLNetToolField> getOutputs() {
+        return toolType.outputs(federated);
     }
 
     public boolean isLinkedToPlatform(String defaultAppId) {

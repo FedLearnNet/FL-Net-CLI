@@ -28,7 +28,6 @@ public class FLNetTool extends BaseFLNet {
         return "tool";
     }
 
-    // ---------------------------------------------------------------- derived values
 
     public String getClassName() {
         return className(getName());
@@ -38,11 +37,22 @@ public class FLNetTool extends BaseFLNet {
         return slug(getName());
     }
 
+    public String getNameYaml() {
+        return yamlString(getName());
+    }
+
+    public String getDescriptionYaml() {
+        return yamlString(getDescription());
+    }
+
+    public String getSourceUrlYaml() {
+        return yamlString(getSourceUrl());
+    }
+
     public boolean hasInputs() {
         return !getInputs().isEmpty();
     }
 
-    // ---------------------------------------------------------------- helpers
 
     public static String className(String name) {
         StringBuilder result = new StringBuilder();
