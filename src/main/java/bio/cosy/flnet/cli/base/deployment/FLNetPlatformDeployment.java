@@ -111,8 +111,6 @@ public class FLNetPlatformDeployment extends BaseFLNetDeployableInstance {
     @Override
     public Map<String, Object> toEnv() {
         Map<String, Object> env = new LinkedHashMap<>();
-        put(env, PlatformEnv.IMAGE_TAG, getImageTag());
-        put(env, CommonEnv.FRONTEND_IMAGE, getFrontendImage());
         put(env, PlatformEnv.DEPLOYED_ON_DOMAIN, getDomain());
         put(env, PlatformEnv.HOSTNAME, getDomain().host());
         put(env, PlatformEnv.NGINX_PORT, getBindIp() + ":" + getNginxPort());
@@ -127,7 +125,6 @@ public class FLNetPlatformDeployment extends BaseFLNetDeployableInstance {
     @Override
     public void fromEnv(Map<String, String> env) {
         readCommonEnv(env);
-        setImageTag(PlatformEnv.IMAGE_TAG.in(env, getImageTag()));
         try {
             if (PlatformEnv.DEPLOYED_ON_DOMAIN.in(env) != null) {
                 setDomain(WebAddress.parse(PlatformEnv.DEPLOYED_ON_DOMAIN.in(env)));

@@ -8,7 +8,6 @@ import lombok.experimental.Accessors;
 @RequiredArgsConstructor
 @Accessors(fluent = true)
 public enum PlatformEnv implements EnvVariable {
-    IMAGE_TAG("Tag of the FL-Net images, e.g. 'latest' or a release version"),
     DEPLOYED_ON_DOMAIN("Public address of the platform (protocol and domain) that users and clients open"),
     HOSTNAME("Bare domain of the platform; the relay checks that its TLS certificate is valid for it"),
     NGINX_PORT("nginx bind address: 127.0.0.1 = localhost only (behind a reverse proxy), 0.0.0.0 = all interfaces"),

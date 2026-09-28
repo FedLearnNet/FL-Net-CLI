@@ -1,7 +1,7 @@
 services:
   orch-api:
     user: "0:0"
-    image: ghcr.io/fedlearnnet/orchestration-api/orch-api:latest
+    image: ghcr.io/fedlearnnet/orchestration-api/orch-api:${IMAGE_TAG:-latest}
     restart: always
     pull_policy: always
     env_file:
@@ -47,7 +47,7 @@ services:
       - local-learning-network
 
   local-learning-api:
-    image: ghcr.io/fedlearnnet/learning-apis/local-learning-api:latest
+    image: ghcr.io/fedlearnnet/learning-apis/local-learning-api:${IMAGE_TAG:-latest}
     container_name: ${COMPOSE_PROJECT_NAME}-local-learning-api
     restart: always
     pull_policy: always
@@ -132,7 +132,7 @@ services:
       - local-learning-network
 
   controller:
-    image: ghcr.io/fedlearnnet/federated-learning-communication-api/controller:latest
+    image: ghcr.io/fedlearnnet/federated-learning-communication-api/controller:${IMAGE_TAG:-latest}
     container_name: ${COMPOSE_PROJECT_NAME}-controller
     environment:
       - WORKFLOW_LEARNING_API_WS_ADDRESS=ws://local-learning-api:8080

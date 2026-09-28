@@ -15,6 +15,7 @@
         <quarkus.platform.group-id>io.quarkus.platform</quarkus.platform.group-id>
         <quarkus.platform.version>3.39.4</quarkus.platform.version>
         <skipITs>true</skipITs>
+        <excludedGroups>e2e</excludedGroups>
         <surefire-plugin.version>3.5.6</surefire-plugin.version>
         <antrun-plugin.version>3.1.0</antrun-plugin.version>
         <lombok.version>1.18.44</lombok.version>
@@ -243,6 +244,13 @@
     </build>
 
     <profiles>
+        <profile>
+            <id>e2e</id>
+            <properties>
+                <groups>e2e</groups>
+                <excludedGroups></excludedGroups>
+            </properties>
+        </profile>
         <profile>
             <id>native</id>
             <activation>

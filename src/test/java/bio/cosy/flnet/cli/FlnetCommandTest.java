@@ -146,6 +146,7 @@ class FlnetCommandTest {
         assertEquals("federated-learning.net", env.get("GLOBAL_DOMAIN"));
         assertEquals("9152", env.get("GLOBAL_TCP_PORT"));
         assertEquals("ghcr.io/fedlearnnet/frontends/local-fl-net:test-tag", env.get("FRONTEND_IMAGE"));
+        assertEquals("test-tag", env.get("IMAGE_TAG"));
         assertEquals("https://flnet.hospital.org", env.get("DEPLOYED_ON_ADDRESS"));
         assertEquals("true", env.get("DISABLE_AUTOMATIC_COHORT_PERMISSION_LEARNING"));
         assertTrue(Files.readString(target.resolve("nginx.conf")).contains("server_name flnet.hospital.org;"));
