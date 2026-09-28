@@ -320,7 +320,7 @@ services:
       - ssl
 
   documentation:
-    image: ghcr.io/fedlearnnet/documentation/flnet-user-doc:latest
+    image: ghcr.io/fedlearnnet/documentation/flnet-user-doc:${IMAGE_TAG}
     networks:
       - global-learning-network
     restart: always
