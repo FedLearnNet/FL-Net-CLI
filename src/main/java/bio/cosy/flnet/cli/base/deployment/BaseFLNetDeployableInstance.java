@@ -140,6 +140,8 @@ public abstract class BaseFLNetDeployableInstance extends BaseFLNet {
     protected void putCommonEnv(Map<String, Object> env) {
         put(env, CommonEnv.COMPOSE_PROJECT_NAME, projectName);
         put(env, CommonEnv.FLNET_INSTANCE_NAME, getName());
+        put(env, CommonEnv.IMAGE_TAG, imageTag == null ? "latest" : imageTag);
+        put(env, CommonEnv.FRONTEND_IMAGE, frontendImage);
     }
 
     protected void putSslEnv(Map<String, Object> env, Object placeholder) {
@@ -153,6 +155,7 @@ public abstract class BaseFLNetDeployableInstance extends BaseFLNet {
         if (CommonEnv.FLNET_INSTANCE_NAME.in(env) != null) {
             setName(CommonEnv.FLNET_INSTANCE_NAME.in(env));
         }
+        imageTag = CommonEnv.IMAGE_TAG.in(env, imageTag);
         frontendImage = CommonEnv.FRONTEND_IMAGE.in(env, frontendImage);
         sslEnabled = "ssl".equals(CommonEnv.COMPOSE_PROFILES.in(env));
         sslCertificate = pathOrNull(CommonEnv.SSL_CERT_PUBLIC_KEY.in(env));

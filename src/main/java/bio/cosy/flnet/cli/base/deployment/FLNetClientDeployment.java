@@ -196,7 +196,6 @@ public class FLNetClientDeployment extends BaseFLNetDeployableInstance {
         put(env, ClientEnv.FEDERATED_LEARNING_ENABLED, isFederation());
         put(env, ClientEnv.GLOBAL_FEDERATION_HOST, isFederation() ? getPlatformAddress().host() : NO_FEDERATION_HOST);
         putSslEnv(env, NO_CERTIFICATE);
-        put(env, CommonEnv.FRONTEND_IMAGE, getFrontendImage());
         put(env, ClientEnv.DISABLE_AUTOMATIC_COHORT_PERMISSION_METRICS, !isAllowAutoMetrics());
         put(env, ClientEnv.DISABLE_AUTOMATIC_COHORT_PERMISSION_STATISTICS, !isAllowAutoStatistics());
         put(env, ClientEnv.DISABLE_AUTOMATIC_COHORT_PERMISSION_LEARNING, !isAllowAutoLearning());
