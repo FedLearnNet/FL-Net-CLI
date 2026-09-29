@@ -27,7 +27,7 @@ import java.util.Set;
 @Setter
 public abstract class BaseFLNetDeployableInstance extends BaseFLNet {
 
-    public static final String DEFAULT_NAME = "default";
+    public static final String DEFAULT_NAME = "default-deployment";
     public static final String ORCH_SECRETS = "orch-secrets.env";
     public static final String KEYCLOAK_SECRETS = "keycloak-secrets.env";
 

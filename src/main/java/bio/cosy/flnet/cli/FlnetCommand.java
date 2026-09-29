@@ -3,7 +3,6 @@ package bio.cosy.flnet.cli;
 import bio.cosy.flnet.cli.client.command.ClientCommand;
 import bio.cosy.flnet.cli.deploy.command.ListCommand;
 import bio.cosy.flnet.cli.diagnostics.command.DoctorCommand;
-import bio.cosy.flnet.cli.migration.command.MigrateCommand;
 import bio.cosy.flnet.cli.platform.command.PlatformCommand;
 import bio.cosy.flnet.cli.helper.VersionProvider;
 import bio.cosy.flnet.cli.tool.command.ToolCommand;
@@ -29,7 +28,6 @@ import picocli.CommandLine.ScopeType;
                 ToolCommand.class,
                 ListCommand.class,
                 DoctorCommand.class,
-                MigrateCommand.class,
                 AutoComplete.GenerateCompletion.class,
         },
         footer = {
