@@ -77,7 +77,7 @@ main() {
     info "To enable shell completion (tab-completion):"
     info "  bash/zsh (temporary):   source <(flnet generate-completion)"
     info "  bash/zsh (permanent):   add the above line to your ~/.bashrc or ~/.zshrc"
-    info "  fish (permanent):       curl -fsSL https://raw.githubusercontent.com/$repo/main/install-fish-completion.sh | sh"
+    info "  fish (permanent, experimental):       curl -fsSL https://raw.githubusercontent.com/$repo/main/install-fish-completion.sh | sh"
     info ""
     info "Get started:                  flnet doctor"
 }
