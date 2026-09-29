@@ -21,6 +21,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 @QuarkusMainTest
 class InstancesTest {
 
+    private static final String DEFAULT_NAME = "default-deployment";
+
     @TempDir
     Path home;
 
@@ -37,9 +39,9 @@ class InstancesTest {
     @Test
     void secondClientNeedsANameAndGetsItsOwnPortAndProject(QuarkusMainLauncher launcher) throws IOException {
         assertEquals(0, launcher.launch("client", "init", "--no-input", "--network", "daibetes").exitCode());
-        Map<String, String> first = EnvFileHelper.read(home.resolve("clients/default/.env"));
+        Map<String, String> first = EnvFileHelper.read(home.resolve("clients/" + DEFAULT_NAME + "/.env"));
         assertEquals("fl-net-client", first.get("COMPOSE_PROJECT_NAME"));
-        assertEquals("default", first.get("FLNET_INSTANCE_NAME"));
+        assertEquals(DEFAULT_NAME, first.get("FLNET_INSTANCE_NAME"));
 
         LaunchResult unnamed = launcher.launch("client", "init", "--no-input", "--network", "daibetes");
         assertEquals(2, unnamed.exitCode());
@@ -60,7 +62,7 @@ class InstancesTest {
         LaunchResult conflict = launcher.launch("client", "init", "--no-input", "--network", "daibetes", "--name", "site-c",
                 "--port", first.get("EXPOSED_PORT"));
         assertEquals(2, conflict.exitCode());
-        assertTrue(conflict.getErrorOutput().contains("already used by client 'default'"), conflict.getErrorOutput());
+        assertTrue(conflict.getErrorOutput().contains("already used by client '" + DEFAULT_NAME + "'"), conflict.getErrorOutput());
         assertTrue(Files.notExists(home.resolve("clients/site-c/.env")));
 
         // a platform next to the clients does not reuse their ports
@@ -68,7 +70,7 @@ class InstancesTest {
         LaunchResult platform = launcher.launch("platform", "init", "--no-input", "--domain", "https://fl.example.org",
                 "--bind-ip", "0.0.0.0", "--ssl-cert", cert.toString(), "--ssl-key", cert.toString());
         assertEquals(0, platform.exitCode(), platform.getErrorOutput());
-        String nginxPort = EnvFileHelper.read(home.resolve("platforms/default/.env")).get("NGINX_PORT").replace("0.0.0.0:", "");
+        String nginxPort = EnvFileHelper.read(home.resolve("platforms/" + DEFAULT_NAME + "/.env")).get("NGINX_PORT").replace("0.0.0.0:", "");
         assertNotEquals(first.get("EXPOSED_PORT"), nginxPort);
         assertNotEquals(second.get("EXPOSED_PORT"), nginxPort);
     }
@@ -80,7 +82,7 @@ class InstancesTest {
         // one instance: selected automatically, info shows details directly
         LaunchResult info = launcher.launch("client", "info");
         assertEquals(0, info.exitCode());
-        assertTrue(info.getOutput().contains("FL-Net Client 'default'"), info.getOutput());
+        assertTrue(info.getOutput().contains("FL-Net Client '" + DEFAULT_NAME + "'"), info.getOutput());
         assertTrue(info.getOutput().replaceAll(" +", " ").contains("Compose project fl-net-client"), info.getOutput());
 
         assertEquals(0, launcher.launch("client", "init", "--no-input", "--network", "microbaiome", "--name", "micro").exitCode());
@@ -93,11 +95,11 @@ class InstancesTest {
 
         LaunchResult ambiguous = launcher.launch("client", "status");
         assertEquals(2, ambiguous.exitCode());
-        assertTrue(ambiguous.getErrorOutput().contains("default, micro"), ambiguous.getErrorOutput());
+        assertTrue(ambiguous.getErrorOutput().contains(DEFAULT_NAME + ", micro"), ambiguous.getErrorOutput());
 
         LaunchResult unknown = launcher.launch("client", "logs", "--name", "nope");
         assertEquals(2, unknown.exitCode());
-        assertTrue(unknown.getErrorOutput().contains("Existing: default, micro"), unknown.getErrorOutput());
+        assertTrue(unknown.getErrorOutput().contains("Existing: " + DEFAULT_NAME + ", micro"), unknown.getErrorOutput());
 
         LaunchResult details = launcher.launch("client", "info", "--name", "micro");
         assertTrue(details.getOutput().contains("microb-ai-net.federated-learning.net"), details.getOutput());
@@ -116,7 +118,7 @@ class InstancesTest {
         assertTrue(help.getOutput().replaceAll("\\s+", " ").contains("Network to join: flnet, microbaiome, daibetes,"), help.getOutput());
 
         assertEquals(0, launcher.launch("client", "init", "--no-input", "--network", "microbaiome").exitCode());
-        Map<String, String> env = EnvFileHelper.read(home.resolve("clients/default/.env"));
+        Map<String, String> env = EnvFileHelper.read(home.resolve("clients/" + DEFAULT_NAME + "/.env"));
         assertEquals("microb-ai-net.federated-learning.net", env.get("GLOBAL_DOMAIN"));
         assertEquals("9154", env.get("GLOBAL_TCP_PORT"));
         assertEquals("ghcr.io/fedlearnnet/frontends/local-microbaiome:latest", env.get("FRONTEND_IMAGE"));
