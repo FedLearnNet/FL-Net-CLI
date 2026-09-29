@@ -47,13 +47,23 @@ function __flnet_complete
 
     bash -c '
         source "$1"; shift
-        COMP_CWORD=$1; shift
-        COMP_WORDS=("$@")
+        compopt() { :; }
+        words=()
+        for w in "$@"; do
+            if [[ $w == --*=* ]]; then
+                words+=("${w%%=*}" "=")
+                [ -n "${w#*=}" ] && words+=("${w#*=}")
+            else
+                words+=("$w")
+            fi
+        done
+        COMP_WORDS=("${words[@]}")
+        COMP_CWORD=$(( ${#COMP_WORDS[@]} - 1 ))
         COMP_LINE="${COMP_WORDS[*]}"
         COMP_POINT=${#COMP_LINE}
         _complete_flnet
         printf "%s\n" "${COMPREPLY[@]}"
-    ' _ $__flnet_cache $cword $words
+    ' _ $__flnet_cache $words 2>/dev/null
 end
 
 complete -c flnet -f -a '(__flnet_complete)'
