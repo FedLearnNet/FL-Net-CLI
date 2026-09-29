@@ -238,7 +238,7 @@ services:
   keycloak-db:
     image: postgres:18.4
     volumes:
-      - keycloak_postgres_volume:/var/lib/postgresql
+      - keycloak_db_volume:/var/lib/postgresql
     env_file:
       - env/keycloak-secrets.env
     environment:
@@ -334,7 +334,7 @@ services:
 volumes:
   global-learning-db-volume:
   datamodeler-db:
-  keycloak_postgres_volume:
+  keycloak_db_volume:
   orch-data-volume:
     name: ${COMPOSE_PROJECT_NAME}_orch-data
   orch-db-volume:
