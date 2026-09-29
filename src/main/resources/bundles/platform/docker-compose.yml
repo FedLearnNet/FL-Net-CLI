@@ -58,7 +58,11 @@ services:
       - QUARKUS_DATASOURCE_USERNAME=user
       - FLNET_FEDDB_CLIENT_AUTH_ENABLE=${REQUIRE_CLIENT_AUTHENTICATION}
       - QUARKUS_OIDC_TOKEN_ISSUER=${DEPLOYED_ON_DOMAIN}/auth/realms/FLNet-Platform
+      - QUARKUS_DATASOURCE_JDBC_URL=jdbc:postgresql://global-learning-db:5432/global-learning-management
       - QUARKUS_REST_CLIENT_RELAY_API_URL=http://relay-server:9140
+      - QUARKUS_REST_CLIENT_DATA_MODELER_SERVICE_URL=http://datamodeler-api:8080
+      - QUARKUS_REST_CLIENT_ORCH_DOCKER_SERVICE_URL=http://orch-api:8080
+      - QUARKUS_REST_CLIENT_LOCAL_CONTROLLER_URL=http://controller:8000
     restart: always
     pull_policy: always
     labels:
@@ -198,7 +202,7 @@ services:
     environment:
       - KC_DB=postgres
       - KC_DB_SCHEMA=public
-      - KC_DB_URL=jdbc:postgresql://keycloak-postgres/keycloak
+      - KC_DB_URL=jdbc:postgresql://keycloak-db/keycloak
       - KC_DB_USERNAME=keycloak
       - KC_LOG_LEVEL=INFO
       - KC_PROXY_HEADERS=xforwarded # as is behind nginx proxy
@@ -228,10 +232,10 @@ services:
       retries: 30
       start_period: 20s
     depends_on:
-      keycloak-postgres:
+      keycloak-db:
         condition: service_healthy
 
-  keycloak-postgres:
+  keycloak-db:
     image: postgres:18.4
     volumes:
       - keycloak_postgres_volume:/var/lib/postgresql
