@@ -41,6 +41,7 @@ public abstract class BaseFLNetDeployableInstance extends BaseFLNet {
     private String imageTag;
     @NotBlank(message = "The frontend image is required.")
     private String frontendImage;
+    private String toolRegistry;
     private boolean sslEnabled;
     private Path sslCertificate;
     private Path sslPrivateKey;
@@ -142,6 +143,7 @@ public abstract class BaseFLNetDeployableInstance extends BaseFLNet {
         put(env, CommonEnv.FLNET_INSTANCE_NAME, getName());
         put(env, CommonEnv.IMAGE_TAG, imageTag == null ? "latest" : imageTag);
         put(env, CommonEnv.FRONTEND_IMAGE, frontendImage);
+        put(env, CommonEnv.TOOL_REGISTRY, toolRegistry);
     }
 
     protected void putSslEnv(Map<String, Object> env, Object placeholder) {
@@ -157,6 +159,8 @@ public abstract class BaseFLNetDeployableInstance extends BaseFLNet {
         }
         imageTag = CommonEnv.IMAGE_TAG.in(env, imageTag);
         frontendImage = CommonEnv.FRONTEND_IMAGE.in(env, frontendImage);
+        String registry = CommonEnv.TOOL_REGISTRY.in(env, toolRegistry);
+        toolRegistry = registry == null || registry.isBlank() ? null : registry.strip();
         sslEnabled = "ssl".equals(CommonEnv.COMPOSE_PROFILES.in(env));
         sslCertificate = pathOrNull(CommonEnv.SSL_CERT_PUBLIC_KEY.in(env));
         sslPrivateKey = pathOrNull(CommonEnv.SSL_CERT_PRIVATE_KEY.in(env));

@@ -5,6 +5,7 @@ import bio.cosy.flnet.cli.base.deployment.FLNetPlatformDeployment;
 import bio.cosy.flnet.cli.deploy.bo.BaseFLNetDeploymentBO;
 import bio.cosy.flnet.cli.network.bo.FLNetNetworkBO;
 import bio.cosy.flnet.cli.helper.CliException;
+import bio.cosy.flnet.cli.helper.SecretHelper;
 import bio.cosy.flnet.cli.helper.WebAddress;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -49,6 +50,8 @@ public class FLNetPlatformDeploymentBO extends BaseFLNetDeploymentBO<FLNetPlatfo
             platform.setBindIp("127.0.0.1");
         }
         platform.setFrontendImage(networks.platformFrontendImage(domain.toString(), platform.getImageTag()));
+        // the platform nginx serves the tool registry under /v2/ of its own domain
+        platform.setToolRegistry(config.images().toolRegistry().orElse(domain.hostWithPort()));
     }
 
     @Override
@@ -58,7 +61,13 @@ public class FLNetPlatformDeploymentBO extends BaseFLNetDeploymentBO<FLNetPlatfo
             throw new CliException("Only some secret files exist in " + platform.getSecretsDirectory() + ". Restore the missing ones, "
                     + "or delete the directory and all volumes ('flnet platform clean') for a fresh start.", CliException.ENVIRONMENT);
         }
-        return super.ensureSecrets(platform);
+        boolean generated = super.ensureSecrets(platform);
+        // added after the other secrets, so existing platforms get it on their next init
+        if (platform.getRegistryPushPassword() == null) {
+            platform.setRegistryPushPassword(SecretHelper.generate(config.secrets().length()));
+            generated = true;
+        }
+        return generated;
     }
 
     public List<String> nextSteps(FLNetPlatformDeployment platform) {

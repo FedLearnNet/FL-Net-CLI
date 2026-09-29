@@ -13,7 +13,10 @@ public enum PlatformSecretEnv implements EnvVariable {
     QUARKUS_OIDC_CREDENTIALS_SECRET("OIDC client secret of the file's service in the platform Keycloak"),
     QUARKUS_KEYCLOAK_ADMIN_CLIENT_CLIENT_SECRET("OIDC client secret used by the Keycloak admin client"),
     DATABASE_API_SECRET("OIDC client secret Keycloak registers for global-learning-api"),
-    DATAMODELER_API_SECRET("OIDC client secret Keycloak registers for datamodeler-api");
+    DATAMODELER_API_SECRET("OIDC client secret Keycloak registers for datamodeler-api"),
+    PIPELINE_DOCKER_USERNAME("User the build pipeline pushes tool images to the platform registry with"),
+    PIPELINE_DOCKER_PASSWORD("Password the build pipeline pushes tool images to the platform registry with"),
+    REGISTRY_PUSH_BASIC_AUTH("Basic auth value (base64 of user:password) nginx requires for pushes to the tool registry");
 
     private final String description;
 }

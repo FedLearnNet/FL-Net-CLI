@@ -30,6 +30,7 @@ public class PersistentPlatformConfig {
     private String datamodelerClientSecret;
     private String globalLearningClientSecret;
     private String globalLearningDbPassword;
+    private String registryPushPassword;
 
     public boolean isLocalOnly() {
         return domain != null && "localhost".equals(domain.host());

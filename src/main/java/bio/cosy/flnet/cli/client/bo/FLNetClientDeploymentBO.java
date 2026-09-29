@@ -72,6 +72,7 @@ public class FLNetClientDeploymentBO extends BaseFLNetDeploymentBO<FLNetClientDe
         client.setPlatformRelayPort(network.getRelayPort());
         client.setPlatformAuth(network.isClientAuth());
         client.setFrontendImage(networks.clientFrontendImage(network.getPlatformUrl(), client.getImageTag()));
+        applyToolRegistry(client);
     }
 
     public void applyCustomPlatform(FLNetClientDeployment client, WebAddress platform, int relayPort, boolean auth) {
@@ -82,6 +83,12 @@ public class FLNetClientDeploymentBO extends BaseFLNetDeploymentBO<FLNetClientDe
         if (networks.byPlatformUrl(platform.toString()).isPresent() || client.getFrontendImage() == null) {
             client.setFrontendImage(networks.clientFrontendImage(platform.toString(), client.getImageTag()));
         }
+        applyToolRegistry(client);
+    }
+
+    private void applyToolRegistry(FLNetClientDeployment client) {
+        // tools are pulled from the registry of the platform the client joins
+        client.setToolRegistry(config.images().toolRegistry().orElse(client.getPlatformAddress().hostWithPort()));
     }
 
 
