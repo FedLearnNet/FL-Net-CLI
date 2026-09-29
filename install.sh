@@ -42,7 +42,7 @@ main() {
     if [ -n "${FLNET_DOWNLOAD_URL:-}" ]; then
         base_url="${FLNET_DOWNLOAD_URL%/}"
     elif [ "$version" = "latest" ]; then
-        base_url="https://github.com/$repo/releases/latest/download"
+        base_url="https://github.com/$repo/releases/download/latest"
     else
         base_url="https://github.com/$repo/releases/download/$version"
     fi
@@ -72,8 +72,12 @@ main() {
             info "  echo 'export PATH=\"$install_dir:\$PATH\"' >> ~/.$(basename "${SHELL:-sh}")rc"
             ;;
     esac
+
     info ""
-    info "Shell completion (bash/zsh):  source <(flnet generate-completion)"
+    info "To enable shell completion (tab-completion) in bash/zsh:"
+    info "  Temporary (current session):  source <(flnet generate-completion)"
+    info "  Permanent (auto-load):        add the above line to your ~/.bashrc or ~/.zshrc"
+    info ""
     info "Get started:                  flnet doctor"
 }
 
