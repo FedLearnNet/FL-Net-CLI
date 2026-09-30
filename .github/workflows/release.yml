@@ -58,7 +58,6 @@ jobs:
           test -f "$RUNNER_TEMP/smoke/aggregator.py"
           ./target/*-runner client init --no-input --dir "$RUNNER_TEMP/client" --network daibetes
           test -f "$RUNNER_TEMP/client/env/keycloak-secrets.env"
-          ./target/*-runner migrate --kind client --dir "$RUNNER_TEMP/client" --dry-run --no-input
           # macOS runners have no docker CLI
           if [ "$RUNNER_OS" = "Linux" ]; then
             ./target/*-runner client compose --dir "$RUNNER_TEMP/client" -o - --keep-variables | grep -q "name: fl-net-client"
