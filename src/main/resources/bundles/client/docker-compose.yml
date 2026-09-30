@@ -3,7 +3,6 @@ services:
     user: "0:0"
     image: ghcr.io/fedlearnnet/orchestration-api/orch-api:${IMAGE_TAG:-latest}
     restart: always
-    pull_policy: always
     env_file:
       - env/orch-secrets.env
     environment:
@@ -50,7 +49,6 @@ services:
     image: ghcr.io/fedlearnnet/learning-apis/local-learning-api:${IMAGE_TAG:-latest}
     container_name: ${COMPOSE_PROJECT_NAME}-local-learning-api
     restart: always
-    pull_policy: always
     env_file:
       - env/local-learning-secrets.env
     environment:
@@ -127,7 +125,6 @@ services:
       keycloak:
         condition: service_healthy
     restart: always
-    pull_policy: always
     networks:
       - local-learning-network
 
@@ -138,7 +135,6 @@ services:
       - WORKFLOW_LEARNING_API_WS_ADDRESS=ws://local-learning-api:8080
       - RELAY_ADDRESS_TCP=${GLOBAL_FEDERATION_HOST}:${GLOBAL_TCP_PORT}
     restart: always
-    pull_policy: always
     depends_on:
       keycloak:
         condition: service_healthy

@@ -2,7 +2,6 @@ services:
   datamodeler-api:
     image: ghcr.io/fedlearnnet/learning-apis/datamodeler-api:${IMAGE_TAG}
     restart: always
-    pull_policy: always
     environment:
       - QUARKUS_NEO4J_AUTHENTICATION_USERNAME=neo4j
         # WARNING: the datamodeler-secrets.env file automatically created always
@@ -64,7 +63,6 @@ services:
       - QUARKUS_REST_CLIENT_ORCH_DOCKER_SERVICE_URL=http://orch-api:8080
       - QUARKUS_REST_CLIENT_LOCAL_CONTROLLER_URL=http://controller:8000
     restart: always
-    pull_policy: always
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
     networks:
@@ -102,7 +100,6 @@ services:
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
     restart: always
-    pull_policy: always
     environment:
       # Please note that CORS_ALLOWED_ORIGINS is NOT specified as this service should never be called
       # directly from the browser, but only from the backend.
@@ -131,7 +128,6 @@ services:
   orch-db:
     image: postgres:18.4
     restart: always
-    pull_policy: always
     environment:
       - POSTGRES_DB=global-learning-management
       - POSTGRES_USER=user
@@ -153,7 +149,6 @@ services:
     # if you change the name also change the relevant env var in the orch api (CONTAINER_NETWORK_CONTROLLER)
     container_name: ${COMPOSE_PROJECT_NAME}-controller
     restart: always
-    pull_policy: always
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
     networks:
@@ -164,7 +159,6 @@ services:
     restart: always
     ports:
       - ${EXPOSED_RELAY_TCP_PORT}:9141
-    pull_policy: always
     networks:
       - global-learning-network
     labels:
@@ -182,7 +176,6 @@ services:
   frontend:
     image: ${FRONTEND_IMAGE}
     restart: always
-    pull_policy: always
     labels:
       - "com.centurylinklabs.watchtower.enable=true"
     networks:
