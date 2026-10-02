@@ -292,7 +292,8 @@ class FLNetDeploymentModelTest {
         FLNetPlatformDeployment platform = platform();
         assertEquals(platform.toSecretFiles().keySet(), platform.getSecretFileNames());
         assertEquals(Set.of(FLNetPlatformDeployment.DATAMODELER_SECRETS, FLNetPlatformDeployment.GLOBAL_LEARNING_SECRETS,
-                BaseFLNetDeployableInstance.ORCH_SECRETS, BaseFLNetDeployableInstance.KEYCLOAK_SECRETS), platform.getSecretFileNames());
+                BaseFLNetDeployableInstance.ORCH_SECRETS, FLNetPlatformDeployment.REGISTRY_SECRETS,
+                BaseFLNetDeployableInstance.KEYCLOAK_SECRETS), platform.getSecretFileNames());
     }
 
     @Test

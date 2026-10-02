@@ -110,6 +110,10 @@ services:
       - CONTAINER_NETWORK_LEARNING=${COMPOSE_PROJECT_NAME}-global-learning-api:8080
       - CONTAINER_NETWORK_CONTROLLER=${COMPOSE_PROJECT_NAME}-controller:8001
       - CONTAINER_NAME=${COMPOSE_PROJECT_NAME}
+      - ORCH_DOCKER__PRIVATE__REGISTRY_URL=${TOOL_REGISTRY:-}
+        # the build pipeline pushes tools to the platform registry; credentials are in orch-secrets.env
+      - PIPELINE_DOCKER_REGISTRY=${TOOL_REGISTRY:-}
+      - PIPELINE_DOCKER_GROUP=/tools
     env_file:
       - env/orch-secrets.env
     networks:
@@ -251,6 +255,9 @@ services:
     image: nginx:latest
     environment:
       - NGINX_HOST=${HOSTNAME}
+    env_file:
+      - env/registry-secrets.env
+        # REGISTRY_PUSH_BASIC_AUTH: the only credential nginx accepts for pushes to /v2/
     ports:
       - ${NGINX_PORT}:80
     networks:
@@ -276,6 +283,7 @@ services:
       - orch-api
       - global-learning-api
       - keycloak
+      - registry
     profiles:
       - no-ssl
 
@@ -283,6 +291,9 @@ services:
     image: nginx:latest
     environment:
       - NGINX_HOST=${HOSTNAME}
+    env_file:
+      - env/registry-secrets.env
+        # REGISTRY_PUSH_BASIC_AUTH: the only credential nginx accepts for pushes to /v2/
     ports:
       - ${NGINX_PORT}:443
     networks:
@@ -313,8 +324,23 @@ services:
       - orch-api
       - global-learning-api
       - keycloak
+      - registry
     profiles:
       - ssl
+
+  registry:
+    # Tool registry, served by nginx under /v2/ of the platform domain:
+    # pull (GET/HEAD) is open, push needs REGISTRY_PUSH_BASIC_AUTH (see nginx.conf)
+    image: registry:3
+    restart: always
+    environment:
+      - REGISTRY_HTTP_RELATIVEURLS=true
+        # behind nginx: Location headers must not point to the internal address
+      - REGISTRY_STORAGE_DELETE_ENABLED=false
+    volumes:
+      - registry-data:/var/lib/registry
+    networks:
+      - global-learning-network
 
   documentation:
     image: ghcr.io/fedlearnnet/documentation/flnet-user-doc:${IMAGE_TAG}
@@ -331,6 +357,7 @@ volumes:
   orch-data-volume:
     name: ${COMPOSE_PROJECT_NAME}_orch-data
   orch-db-volume:
+  registry-data:
   #neo4j-import:
 
 networks:

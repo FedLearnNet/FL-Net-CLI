@@ -15,6 +15,7 @@ services:
       - CONTAINER_NETWORK_LEARNING=${COMPOSE_PROJECT_NAME}-local-learning-api:8080
       - CONTAINER_NETWORK_CONTROLLER=${COMPOSE_PROJECT_NAME}-controller:8001
       - CONTAINER_NAME=${COMPOSE_PROJECT_NAME}
+      - ORCH_DOCKER__PRIVATE__REGISTRY_URL=${TOOL_REGISTRY:-}
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - orch-data-volume:/mnt/input:rw

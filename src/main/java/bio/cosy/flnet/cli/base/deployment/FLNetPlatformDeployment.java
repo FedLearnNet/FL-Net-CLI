@@ -13,6 +13,8 @@ import lombok.Getter;
 import lombok.Setter;
 import lombok.experimental.Delegate;
 
+import java.nio.charset.StandardCharsets;
+import java.util.Base64;
 import java.util.LinkedHashMap;
 import java.util.List;
 import java.util.Map;
@@ -23,6 +25,8 @@ public class FLNetPlatformDeployment extends BaseFLNetDeployableInstance {
 
     public static final String DATAMODELER_SECRETS = "datamodeler-secrets.env";
     public static final String GLOBAL_LEARNING_SECRETS = "global-learning-secrets.env";
+    public static final String REGISTRY_SECRETS = "registry-secrets.env";
+    public static final String REGISTRY_PUSH_USER = "pipeline";
 
     @Valid
     @Delegate
@@ -81,7 +85,12 @@ public class FLNetPlatformDeployment extends BaseFLNetDeployableInstance {
                 CommonSecretEnv.POSTGRES_PASSWORD.key(), getGlobalLearningDbPassword()));
         files.put(ORCH_SECRETS, ordered(
                 CommonSecretEnv.QUARKUS_DATASOURCE_PASSWORD.key(), getOrchDbPassword(),
-                CommonSecretEnv.POSTGRES_PASSWORD.key(), getOrchDbPassword()));
+                CommonSecretEnv.POSTGRES_PASSWORD.key(), getOrchDbPassword(),
+                PlatformSecretEnv.PIPELINE_DOCKER_USERNAME.key(), REGISTRY_PUSH_USER,
+                PlatformSecretEnv.PIPELINE_DOCKER_PASSWORD.key(), getRegistryPushPassword()));
+        files.put(REGISTRY_SECRETS, ordered(
+                PlatformSecretEnv.REGISTRY_PUSH_BASIC_AUTH.key(), getRegistryPushPassword() == null ? null
+                        : Base64.getEncoder().encodeToString((REGISTRY_PUSH_USER + ":" + getRegistryPushPassword()).getBytes(StandardCharsets.UTF_8))));
         files.put(KEYCLOAK_SECRETS, ordered(
                 CommonSecretEnv.KC_BOOTSTRAP_ADMIN_USERNAME.key(), getKeycloakAdminUsername(),
                 CommonSecretEnv.KC_BOOTSTRAP_ADMIN_PASSWORD.key(), getKeycloakAdminPassword(),
@@ -100,6 +109,7 @@ public class FLNetPlatformDeployment extends BaseFLNetDeployableInstance {
         setDatamodelerClientSecret(secretOrNull(files, DATAMODELER_SECRETS, PlatformSecretEnv.QUARKUS_OIDC_CREDENTIALS_SECRET.key()));
         setGlobalLearningClientSecret(secretOrNull(files, GLOBAL_LEARNING_SECRETS, PlatformSecretEnv.QUARKUS_OIDC_CREDENTIALS_SECRET.key()));
         setGlobalLearningDbPassword(secretOrNull(files, GLOBAL_LEARNING_SECRETS, CommonSecretEnv.POSTGRES_PASSWORD.key()));
+        setRegistryPushPassword(secretOrNull(files, ORCH_SECRETS, PlatformSecretEnv.PIPELINE_DOCKER_PASSWORD.key()));
     }
 
 
