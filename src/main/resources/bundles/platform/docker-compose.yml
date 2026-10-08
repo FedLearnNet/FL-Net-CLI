@@ -248,7 +248,7 @@ services:
 
 
   reverse-proxy-unencrypted:
-    image: cgr.dev/chainguard/nginx:latest
+    image: nginx:latest
     environment:
       - NGINX_HOST=${HOSTNAME}
     ports:
@@ -280,7 +280,7 @@ services:
       - no-ssl
 
   reverse-proxy-encrypted:
-    image: cgr.dev/chainguard/nginx:latest
+    image: nginx:latest
     environment:
       - NGINX_HOST=${HOSTNAME}
     ports:
