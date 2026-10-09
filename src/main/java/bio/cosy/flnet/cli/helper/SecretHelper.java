@@ -9,6 +9,13 @@ public final class SecretHelper {
     private SecretHelper() {
     }
 
+    /**
+     * Generates a random secret string of the specified length.
+     * Uses only alphanumeric characters (A-Z, a-z, 0-9) for the secret.
+     *
+     * @param length the length of the secret string to generate
+     * @return the generated secret string
+     */
     public static String generate(int length) {
         SecureRandom random = new SecureRandom();
         StringBuilder secret = new StringBuilder(length);
