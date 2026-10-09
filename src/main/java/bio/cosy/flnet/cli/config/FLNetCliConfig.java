@@ -63,6 +63,8 @@ public interface FLNetCliConfig {
         @WithDefault("latest")
         String tag();
 
+        Optional<String> toolRegistry();
+
         FrontendImageSettings frontend();
     }
 
