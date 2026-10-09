@@ -3,13 +3,12 @@ services:
     user: "0:0"
     image: ghcr.io/fedlearnnet/orchestration-api/orch-api:${IMAGE_TAG:-latest}
     restart: always
-    pull_policy: always
     env_file:
       - env/orch-secrets.env
     environment:
       - QUARKUS_HTTP_CORS_ENABLED=true
       - QUARKUS_HTTP_CORS_ORIGINS=${DEPLOYED_ON_ADDRESS}
-      - QUARKUS_DATASOURCE_JDBC_URL=jdbc:postgresql://orch-api-db:5432/local-learning-management
+      - QUARKUS_DATASOURCE_JDBC_URL=jdbc:postgresql://orch-db:5432/local-learning-management
       - QUARKUS_DATASOURCE_USERNAME=user
       - CONTAINER_FILE_TRANSFER_VOLUME_NAME=${COMPOSE_PROJECT_NAME}_orch-data
       - CONTAINER_FILE_TRANSFER_VOLUME_PATH=/mnt/input
@@ -21,14 +20,14 @@ services:
       - /var/run/docker.sock:/var/run/docker.sock
       - orch-data-volume:/mnt/input:rw
     depends_on:
-      orch-api-db:
+      orch-db:
         condition: service_healthy
       keycloak:
         condition: service_healthy
     networks:
       - local-learning-network
 
-  orch-api-db:
+  orch-db:
     image:  postgres:18.6
     restart: always
     environment:
@@ -38,7 +37,7 @@ services:
     env_file:
       - env/orch-secrets.env
     volumes:
-      - orch-api-db-volume:/var/lib/postgresql
+      - orch-db-volume:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U user -d local-learning-management"]
       interval: 10s
@@ -51,13 +50,12 @@ services:
     image: ghcr.io/fedlearnnet/learning-apis/local-learning-api:${IMAGE_TAG:-latest}
     container_name: ${COMPOSE_PROJECT_NAME}-local-learning-api
     restart: always
-    pull_policy: always
     env_file:
       - env/local-learning-secrets.env
     environment:
     - QUARKUS_HTTP_CORS_ENABLED=true
     - QUARKUS_HTTP_CORS_ORIGINS=${DEPLOYED_ON_ADDRESS}
-    - QUARKUS_DATASOURCE_JDBC_URL=jdbc:postgresql://local-learning-api-db:5432/local-learning-management
+    - QUARKUS_DATASOURCE_JDBC_URL=jdbc:postgresql://local-learning-db:5432/local-learning-management
     - QUARKUS_DATASOURCE_USERNAME=user
     - QUARKUS_REST_CLIENT_ORCH_DOCKER_SERVICE_URL=http://orch-api:8080
     - QUARKUS_REST_CLIENT_CONTROLLER_API_URL=http://controller:8000
@@ -94,14 +92,14 @@ services:
     - QUARKUS_OIDC_CLIENT_GLOBAL_WEBSOCKET_CLIENT_ID=fl-net-clients
     # OIDC Client credentials are in the secrets env file
     depends_on:
-      local-learning-api-db:
+      local-learning-db:
         condition: service_healthy
       keycloak:
         condition: service_healthy
     networks:
       - local-learning-network
 
-  local-learning-api-db:
+  local-learning-db:
     image:  postgres:18.6
     restart: always
     environment:
@@ -111,7 +109,7 @@ services:
     env_file:
       - env/local-learning-secrets.env
     volumes:
-      - local-learning-api-db-volume:/var/lib/postgresql
+      - local-learning-db-volume:/var/lib/postgresql
     healthcheck:
       test: ["CMD-SHELL", "pg_isready -U user -d local-learning-management"]
       interval: 10s
@@ -128,7 +126,6 @@ services:
       keycloak:
         condition: service_healthy
     restart: always
-    pull_policy: always
     networks:
       - local-learning-network
 
@@ -139,7 +136,6 @@ services:
       - WORKFLOW_LEARNING_API_WS_ADDRESS=ws://local-learning-api:8080
       - RELAY_ADDRESS_TCP=${GLOBAL_FEDERATION_HOST}:${GLOBAL_TCP_PORT}
     restart: always
-    pull_policy: always
     depends_on:
       keycloak:
         condition: service_healthy
@@ -159,7 +155,7 @@ services:
       - KC_DB=postgres
       - KC_DB_URL_DATABASE=keycloak
       - KC_DB_SCHEMA=public
-      - KC_DB_URL=jdbc:postgresql://keycloak-postgres/keycloak
+      - KC_DB_URL=jdbc:postgresql://keycloak-db/keycloak
       - KC_DB_USERNAME=keycloak
       - KC_HOSTNAME=${DEPLOYED_ON_ADDRESS}/auth
       - KC_HTTP_RELATIVE_PATH=/auth
@@ -195,14 +191,14 @@ services:
       retries: 30
       start_period: 20s
     depends_on:
-      keycloak-postgres:
+      keycloak-db:
         condition: service_healthy
 
-  keycloak-postgres:
+  keycloak-db:
     image: postgres:18.6
     restart: always
     volumes:
-      - keycloak_postgres_volume:/var/lib/postgresql
+      - keycloak_db_volume:/var/lib/postgresql
     env_file:
       - env/keycloak-secrets.env
     environment:
@@ -285,11 +281,11 @@ services:
       - ssl
 
 volumes:
-  local-learning-api-db-volume:
-  keycloak_postgres_volume:
+  local-learning-db-volume:
+  keycloak_db_volume:
   orch-data-volume:
     name: ${COMPOSE_PROJECT_NAME}_orch-data
-  orch-api-db-volume:
+  orch-db-volume:
 
 networks:
   local-learning-network:

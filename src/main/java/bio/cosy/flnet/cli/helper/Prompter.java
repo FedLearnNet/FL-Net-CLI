@@ -76,6 +76,27 @@ public class Prompter {
         return Integer.parseInt(value);
     }
 
+    /**
+     * Resolves a yes/no decision, preferring a value supplied on the command line
+     * and only prompting the user when none was given.
+     * <p>
+     * Resolution order:
+     * <ol>
+     *   <li>If {@code given} is non-null, it is returned immediately without prompting.</li>
+     *   <li>Otherwise, if running non-interactively, {@code def} is returned.</li>
+     *   <li>Otherwise, the user is asked on the console until they enter a valid answer;
+     *       an empty answer selects {@code def}.</li>
+     * </ol>
+     *
+     * @param flag     the command-line flag this decision corresponds to (e.g. {@code "--federation"}),
+     *                 used to identify the option
+     * @param given    the value supplied on the command line, or {@code null} if the user did not pass one
+     * @param question the question shown to the user in interactive mode
+     * @param def      the default answer, used when the user presses Enter or when running non-interactively;
+     *                 also determines the prompt hint
+     * @return {@code given} if it was supplied, otherwise the user's answer in interactive mode,
+     *         or {@code def} in non-interactive mode
+     */
     public boolean confirm(String flag, Boolean given, String question, boolean def) {
         if (given != null) {
             return given;
@@ -84,7 +105,7 @@ public class Prompter {
             return def;
         }
         while (true) {
-            String answer = readLine(question + (def ? " [Y/n]: " : " [y/N]: ")).trim().toLowerCase(Locale.ROOT);
+            String answer = readLine(question + "[y/n default " + (def ? "y" : "n") + "]: ").trim().toLowerCase(Locale.ROOT);
             switch (answer) {
                 case "" -> {
                     return def;

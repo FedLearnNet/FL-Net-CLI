@@ -151,17 +151,6 @@ cd random-forest && python3 -m venv .venv && . .venv/bin/activate && pip install
 TEST_MODE=true python main.py      # offline run with generated test data
 ```
 
-## Upgrading an existing deployment
-
-```bash
-flnet migrate --kind client --name hospital-a --dry-run  # explain pending changes
-flnet migrate --kind client --name hospital-a            # confirm and migrate to newest bundled revision
-```
-
-Previews the pending changes, asks for confirmation, applies them and records the completed revision.
-Older deployments without a recorded version need `--from <revision>`. There are no backups or automatic
-recovery; containers are not restarted.
-
 ---
 
 Building from source, architecture and the release process: see [CONTRIBUTING.md](CONTRIBUTING.md).

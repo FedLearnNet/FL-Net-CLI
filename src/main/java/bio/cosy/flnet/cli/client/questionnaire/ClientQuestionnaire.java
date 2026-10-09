@@ -81,8 +81,8 @@ public class ClientQuestionnaire extends BaseQuestionnaire {
 
     private void network(ClientConfig given, FLNetClientDeployment client) {
         section("1. Network",
-                "The client reads data schemas and the tool registry from a network (read-only; subscribing to a",
-                "schema only increments its counter). Optionally it also takes part in federated queries and learning.");
+                "The client reads data schemas and the tool registry from a deployed networks Platform.",
+                " Optionally it also takes part in federated queries and learning. Which network do you want to join?");
         Map<String, FLNetNetwork> options = new LinkedHashMap<>();
         networks.all().forEach(n -> options.put(n.getKey(), n));
         options.put(FLNetNetworkBO.CUSTOM, null);

@@ -41,18 +41,6 @@ class FlnetCommandTest {
     @Launch({"--help"})
     void printsHelp(LaunchResult result) {
         assertTrue(result.getOutput().contains("flnet client init"));
-        assertTrue(result.getOutput().contains("migrate"));
-    }
-
-    @Test
-    void recognizesCurrentDeploymentRevision(QuarkusMainLauncher launcher) {
-        Path directory = home.resolve("migration-client");
-        LaunchResult init = launcher.launch("client", "init", "--no-input", "--dir", directory.toString(), "--network", "daibetes");
-        assertEquals(0, init.exitCode(), init.getErrorOutput());
-        assertTrue(Files.exists(directory.resolve(".flnet/migrations.json")));
-        LaunchResult migration = launcher.launch("migrate", "--kind", "client", "--dir", directory.toString(), "--dry-run", "--no-input");
-        assertEquals(0, migration.exitCode(), migration.getErrorOutput());
-        assertTrue(migration.getOutput().contains("Already at the newest"));
     }
 
     @Test

@@ -6,7 +6,6 @@ import bio.cosy.flnet.cli.config.FLNetCliConfig;
 import bio.cosy.flnet.cli.deploy.DeploymentBundleHelper;
 import bio.cosy.flnet.cli.deploy.PortPlanner;
 import bio.cosy.flnet.cli.deploy.command.InstanceOptions;
-import bio.cosy.flnet.cli.migration.bo.FLNetMigrationBO;
 import bio.cosy.flnet.cli.helper.CliException;
 import bio.cosy.flnet.cli.helper.ConsoleHelper;
 import bio.cosy.flnet.cli.helper.EnvFileHelper;
@@ -35,9 +34,6 @@ public abstract class BaseFLNetDeploymentBO<T extends BaseFLNetDeployableInstanc
 
     @Inject
     Validator validator;
-
-    @Inject
-    FLNetMigrationBO migrations;
 
     public abstract DeploymentKind kind();
 
@@ -192,8 +188,6 @@ public abstract class BaseFLNetDeploymentBO<T extends BaseFLNetDeployableInstanc
 
 
     public DeploymentBundleHelper.InstallResult save(T instance, boolean refreshFiles, Path bundleDir) {
-        migrations.requireCompatibleForInit(kind(), instance.getDirectory());
-        boolean fresh = !Files.exists(instance.getEnvFile());
         instance.requireValid(validator);
         DeploymentBundleHelper.InstallResult files = DeploymentBundleHelper.install(kind(), instance.getDirectory(), bundleDir, refreshFiles);
         if (!BaseFLNetDeployableInstance.DEFAULT_NAME.equals(instance.getName())) {
@@ -202,9 +196,6 @@ public abstract class BaseFLNetDeploymentBO<T extends BaseFLNetDeployableInstanc
         instance.toSecretFiles().forEach((file, variables) -> EnvFileHelper.write(instance.getSecretsDirectory().resolve(file), variables));
         EnvFileHelper.write(instance.getEnvFile(), instance.toEnv(), instance.envComments());
         afterSave(instance);
-        if (fresh && bundleDir == null) {
-            migrations.recordFreshDeployment(kind(), instance.getDirectory());
-        }
         register(instance);
         return files;
     }
