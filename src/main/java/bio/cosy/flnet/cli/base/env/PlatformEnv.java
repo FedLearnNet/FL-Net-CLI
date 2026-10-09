@@ -13,7 +13,8 @@ public enum PlatformEnv implements EnvVariable {
     NGINX_PORT("nginx bind address: 127.0.0.1 = localhost only (behind a reverse proxy), 0.0.0.0 = all interfaces"),
     EXPOSED_RELAY_TCP_PORT("Address and TCP port of the relay that clients connect to for federated learning"),
     MIN_CLIENTS_NEEDED_FOR_LEARNING("Minimum number of clients a federated learning needs (fewer weaken privacy techniques such as SMPC)"),
-    REQUIRE_CLIENT_AUTHENTICATION("true = clients must log in with an account of the platform Keycloak");
+    REQUIRE_CLIENT_AUTHENTICATION("true = clients must log in with an account of the platform Keycloak"),
+    PLATFORM_AGGREGATOR_ENABLED("true = projects may run their FL aggregator on this platform instead of a random client");
 
     private final String description;
 }

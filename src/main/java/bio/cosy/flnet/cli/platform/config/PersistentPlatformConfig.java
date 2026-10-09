@@ -24,6 +24,7 @@ public class PersistentPlatformConfig {
     @Min(value = 1, message = "At least one client is required to start a learning.")
     private int minClients;
     private boolean clientAuth = true;
+    private boolean platformAggregatorEnabled = false;
 
     // generated secrets
     private String neo4jPassword;

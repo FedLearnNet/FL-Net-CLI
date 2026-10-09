@@ -88,5 +88,9 @@ public class PlatformQuestionnaire extends BaseQuestionnaire {
         ConsoleHelper.info("no longer anonymous, but unknown and potentially malicious clients cannot join. Recommended.");
         platform.setClientAuth(prompter.confirm("--client-auth", given.getClientAuth(), "Require clients to authenticate?",
                 platform.isClientAuth()));
+        ConsoleHelper.info("This lets a project choose to run its FL aggregator on the platform itself, instead of");
+        ConsoleHelper.info("always picking a random client - useful when no client should be trusted with that role.");
+        platform.setPlatformAggregatorEnabled(prompter.confirm("--platform-aggregator", given.getPlatformAggregatorEnabled(),
+                "Allow the platform to run the FL aggregator for projects that choose to?", platform.isPlatformAggregatorEnabled()));
     }
 }
