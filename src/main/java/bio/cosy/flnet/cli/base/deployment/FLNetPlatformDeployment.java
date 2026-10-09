@@ -118,6 +118,7 @@ public class FLNetPlatformDeployment extends BaseFLNetDeployableInstance {
         put(env, PlatformEnv.MIN_CLIENTS_NEEDED_FOR_LEARNING, getMinClients());
         putSslEnv(env, null);
         put(env, PlatformEnv.REQUIRE_CLIENT_AUTHENTICATION, isClientAuth());
+        put(env, PlatformEnv.PLATFORM_AGGREGATOR_ENABLED, isPlatformAggregatorEnabled());
         putCommonEnv(env);
         return env;
     }
@@ -137,5 +138,6 @@ public class FLNetPlatformDeployment extends BaseFLNetDeployableInstance {
         setRelayPort(portOf(PlatformEnv.EXPOSED_RELAY_TCP_PORT.in(env), getRelayPort()));
         setMinClients(intOr(PlatformEnv.MIN_CLIENTS_NEEDED_FOR_LEARNING.in(env), getMinClients()));
         setClientAuth(bool(PlatformEnv.REQUIRE_CLIENT_AUTHENTICATION.in(env), isClientAuth()));
+        setPlatformAggregatorEnabled(bool(PlatformEnv.PLATFORM_AGGREGATOR_ENABLED.in(env), isPlatformAggregatorEnabled()));
     }
 }

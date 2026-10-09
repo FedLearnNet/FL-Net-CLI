@@ -44,6 +44,7 @@ public final class InstanceReportHelper {
             row("Relay", "0.0.0.0:" + platform.getRelayPort());
             row("Min. clients", String.valueOf(platform.getMinClients()));
             row("Client auth", platform.isClientAuth() ? "required" : "off");
+            row("Platform aggregator", platform.isPlatformAggregatorEnabled() ? "enabled" : "disabled");
         }
         row("SSL in nginx", instance.isSslEnabled() ? String.valueOf(instance.getSslCertificate()) : "no");
         row("Keycloak admin", instance.getSecretsDirectory().resolve("keycloak-secrets.env").toString());
