@@ -43,4 +43,8 @@ public class PlatformConfig extends BaseDeploymentConfig {
     @Option(names = "--client-auth", negatable = true,
             description = "Require clients to authenticate against the platform Keycloak. Default: true.")
     private Boolean clientAuth;
+
+    @Option(names = "--platform-aggregator", negatable = true,
+            description = "Allow projects to run their FL aggregator on this platform instead of a random client. Default: false.")
+    private Boolean platformAggregatorEnabled;
 }

@@ -23,6 +23,7 @@ class PlatformConfigMapperTest {
         options.setRelayPort(9153);
         options.setMinClients(5);
         options.setClientAuth(false);
+        options.setPlatformAggregatorEnabled(true);
 
         PersistentPlatformConfig target = new PersistentPlatformConfig();
         mapper.updateFromOptions(options, target);
@@ -33,6 +34,7 @@ class PlatformConfigMapperTest {
         assertEquals(9153, target.getRelayPort());
         assertEquals(5, target.getMinClients());
         assertEquals(false, target.isClientAuth());
+        assertEquals(true, target.isPlatformAggregatorEnabled());
     }
 
     @Test
@@ -45,5 +47,6 @@ class PlatformConfigMapperTest {
 
         assertEquals(1234, target.getNginxPort());
         assertTrue(target.isClientAuth());
+        assertEquals(false, target.isPlatformAggregatorEnabled());
     }
 }
