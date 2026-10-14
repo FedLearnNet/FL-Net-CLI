@@ -30,7 +30,6 @@ public abstract class BaseFLNetDeployableInstance extends BaseFLNet {
     public static final String DEFAULT_NAME = "default-deployment";
     public static final String ORCH_SECRETS = "orch-secrets.env";
     public static final String KEYCLOAK_SECRETS = "keycloak-secrets.env";
-    public static final String REGISTRY_ENDPOINT = "v2";
 
     public static final String NAME_VARIABLE = CommonEnv.FLNET_INSTANCE_NAME.key();
 
@@ -144,8 +143,7 @@ public abstract class BaseFLNetDeployableInstance extends BaseFLNet {
         put(env, CommonEnv.FLNET_INSTANCE_NAME, getName());
         put(env, CommonEnv.IMAGE_TAG, imageTag == null ? "latest" : imageTag);
         put(env, CommonEnv.FRONTEND_IMAGE, frontendImage);
-        // nginx only routes /v2/ to the registry, everything else goes to the frontend
-        put(env, CommonEnv.TOOL_REGISTRY, toolRegistry == null ? null : stripEndpoint(toolRegistry) + "/" + REGISTRY_ENDPOINT);
+        put(env, CommonEnv.TOOL_REGISTRY, toolRegistry);
     }
 
     protected void putSslEnv(Map<String, Object> env, Object placeholder) {
@@ -162,7 +160,7 @@ public abstract class BaseFLNetDeployableInstance extends BaseFLNet {
         imageTag = CommonEnv.IMAGE_TAG.in(env, imageTag);
         frontendImage = CommonEnv.FRONTEND_IMAGE.in(env, frontendImage);
         String registry = CommonEnv.TOOL_REGISTRY.in(env, toolRegistry);
-        toolRegistry = registry == null || registry.isBlank() ? null : stripEndpoint(registry);
+        toolRegistry = registry == null || registry.isBlank() ? null : registry.strip();
         sslEnabled = "ssl".equals(CommonEnv.COMPOSE_PROFILES.in(env));
         sslCertificate = pathOrNull(CommonEnv.SSL_CERT_PUBLIC_KEY.in(env));
         sslPrivateKey = pathOrNull(CommonEnv.SSL_CERT_PRIVATE_KEY.in(env));
@@ -239,15 +237,6 @@ public abstract class BaseFLNetDeployableInstance extends BaseFLNet {
             map.put(keyValues[i], keyValues[i + 1]);
         }
         return map;
-    }
-
-    static String stripEndpoint(String registry) {
-        String host = registry.strip();
-        while (host.endsWith("/")) {
-            host = host.substring(0, host.length() - 1);
-        }
-        String suffix = "/" + REGISTRY_ENDPOINT;
-        return host.endsWith(suffix) ? host.substring(0, host.length() - suffix.length()) : host;
     }
 
     protected static String secretOrNull(Map<String, Map<String, String>> files, String file, String key) {
