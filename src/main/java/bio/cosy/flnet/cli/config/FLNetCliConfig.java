@@ -36,6 +36,8 @@ public interface FLNetCliConfig {
 
     ToolSettings tool();
 
+    SandboxSettings sandbox();
+
     interface NetworkSettings {
 
         @NotBlank(message = "Every network needs a name.")
@@ -144,6 +146,22 @@ public interface FLNetCliConfig {
         int minClients();
 
         String keycloakAdminUsername();
+    }
+
+    interface SandboxSettings {
+
+        String projectName();
+
+        @Range(min = 1, max = 65535, message = "Ports must be between 1 and 65535.")
+        int port();
+
+        @Range(min = 1, max = 65535, message = "Ports must be between 1 and 65535.")
+        int relayPort();
+
+        @Positive(message = "A sandbox needs at least one client.")
+        int clients();
+
+        String imageTag();
     }
 
     interface ToolSettings {

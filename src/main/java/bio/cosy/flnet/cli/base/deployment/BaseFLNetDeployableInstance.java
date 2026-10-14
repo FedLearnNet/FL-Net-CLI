@@ -32,6 +32,8 @@ public abstract class BaseFLNetDeployableInstance extends BaseFLNet {
     public static final String KEYCLOAK_SECRETS = "keycloak-secrets.env";
 
     public static final String NAME_VARIABLE = CommonEnv.FLNET_INSTANCE_NAME.key();
+    // placeholder for unused certificate mounts: compose needs a non-empty path
+    protected static final String NO_CERTIFICATE = "dummyfile";
 
     private static final String NAME_REGEX = "[a-z0-9]([a-z0-9-]{0,30}[a-z0-9])?";
     private static final String NAME_RULE = "Use 1-32 lowercase letters, digits and dashes, starting and ending with a letter or digit (e.g. 'site-a').";
@@ -43,6 +45,7 @@ public abstract class BaseFLNetDeployableInstance extends BaseFLNet {
     private String frontendImage;
     private String toolRegistry;
     private boolean sslEnabled;
+    private boolean sandbox;
     private Path sslCertificate;
     private Path sslPrivateKey;
     private String keycloakAdminUsername;
@@ -144,6 +147,9 @@ public abstract class BaseFLNetDeployableInstance extends BaseFLNet {
         put(env, CommonEnv.IMAGE_TAG, imageTag == null ? "latest" : imageTag);
         put(env, CommonEnv.FRONTEND_IMAGE, frontendImage);
         put(env, CommonEnv.TOOL_REGISTRY, toolRegistry);
+        if (sandbox) {
+            put(env, CommonEnv.FLNET_SANDBOX, true);
+        }
     }
 
     protected void putSslEnv(Map<String, Object> env, Object placeholder) {
@@ -161,6 +167,7 @@ public abstract class BaseFLNetDeployableInstance extends BaseFLNet {
         frontendImage = CommonEnv.FRONTEND_IMAGE.in(env, frontendImage);
         String registry = CommonEnv.TOOL_REGISTRY.in(env, toolRegistry);
         toolRegistry = registry == null || registry.isBlank() ? null : registry.strip();
+        sandbox = bool(CommonEnv.FLNET_SANDBOX.in(env), sandbox);
         sslEnabled = "ssl".equals(CommonEnv.COMPOSE_PROFILES.in(env));
         sslCertificate = pathOrNull(CommonEnv.SSL_CERT_PUBLIC_KEY.in(env));
         sslPrivateKey = pathOrNull(CommonEnv.SSL_CERT_PRIVATE_KEY.in(env));
@@ -201,14 +208,18 @@ public abstract class BaseFLNetDeployableInstance extends BaseFLNet {
         env.put(variable.key(), value);
     }
 
-    protected static List<EnvVariable> envVariables(EnvVariable[] own) {
+    protected List<EnvVariable> envVariables(EnvVariable[] own) {
         List<EnvVariable> all = new ArrayList<>(List.of(CommonEnv.values()));
+        if (!sandbox) {
+            // only written for sandbox members
+            all.remove(CommonEnv.FLNET_SANDBOX);
+        }
         all.addAll(List.of(own));
         return all;
     }
 
     protected static Path pathOrNull(String value) {
-        return value == null || value.isBlank() || "dummyfile".equals(value) ? null : Path.of(value);
+        return value == null || value.isBlank() || NO_CERTIFICATE.equals(value) ? null : Path.of(value);
     }
 
     protected static boolean bool(String value, boolean fallback) {

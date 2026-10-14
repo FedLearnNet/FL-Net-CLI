@@ -106,6 +106,15 @@ public class ComposeBO {
         return Optional.of(target);
     }
 
+    /** The images of all services that the active profile starts. */
+    public List<String> images(BaseFLNetDeployableInstance instance) {
+        instance.requireInitialized();
+        return ProcessHelper.output("docker", "compose", "--project-directory", instance.getDirectory().toString(), "config", "--images")
+                .map(out -> out.lines().map(String::strip).filter(line -> !line.isEmpty()).distinct().sorted().toList())
+                .orElseThrow(() -> new CliException("Could not read the images of " + instance.getLabel()
+                        + " with 'docker compose config'. Run 'flnet doctor' to check your setup.", CliException.ENVIRONMENT));
+    }
+
     public boolean isRunning(BaseFLNetDeployableInstance instance) {
         return containerStates(instance).map(all -> all.contains("running")).orElse(false);
     }

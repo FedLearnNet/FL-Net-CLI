@@ -1,0 +1,51 @@
+schemanode_name,schemanode_description,schemanode_type,ontology_id,ontology_name,datatype_name,datatype_type,datatype_description,allowed_values,group_node,is_timeseries
+Race,Race of the patient,LIST_ATTRIBUTE,CUSTOM_RACE,Race,Race or Ethnicity custom categories,CATEGORICAL,,"[""Caucasian"",""AfricanAmerican"",""Hispanic"",""Asian"",""Other""]",Demographics,n
+Gender,Gender of the patient,LIST_ATTRIBUTE,CUSTOM_GENDER,Sex assigned at birth,Gender or sex,CATEGORICAL,,"[""Female"",""Male""]",Demographics,n
+Age,Age group in 10-year intervals,LIST_ATTRIBUTE,CUSTOM_AGE,Age,Age group bracket,CATEGORICAL,,"[""[0-10)"",""[10-20)"",""[20-30)"",""[30-40)"",""[40-50)"",""[50-60)"",""[60-70)"",""[70-80)"",""[80-90)"",""[90-100)""]",Demographics,n
+Weight,Weight in pounds,LIST_ATTRIBUTE,CUSTOM_WEIGHT,Body Weight,Weight bracket,CATEGORICAL,,"[""[0-25)"",""[25-50)"",""[50-75)"",""[75-100)"",""[100-125)"",""[125-150)"",""[150-175)"",""[175-200)"",""[200-225)"",""[225-250)"",""[250-275)"",""[275-300)"","">300""]",Demographics,n
+Encounter ID,Unique identifier of an encounter,LIST_ATTRIBUTE,CUSTOM_ENCOUNTER_ID,Encounter Identifier,generic integer,INT,,,Encounter,y
+Patient Number,Unique identifier of a patient,LIST_ATTRIBUTE,CUSTOM_PATIENT_NBR,Patient Number,generic integer,INT,,,Encounter,y
+Admission Type,Integer identifier for the type of admission,LIST_ATTRIBUTE,CUSTOM_ADMISSION_TYPE,Admission Type,generic integer,INT,,,Encounter,y
+Discharge Disposition,Integer identifier for the discharge disposition,LIST_ATTRIBUTE,CUSTOM_DISCHARGE_DISPOSITION,Discharge Disposition,generic integer,INT,,,Encounter,y
+Admission Source,Integer identifier for the admission source,LIST_ATTRIBUTE,CUSTOM_ADMISSION_SOURCE,Admission Source,generic integer,INT,,,Encounter,y
+Time in Hospital,Number of days between admission and discharge,LIST_ATTRIBUTE,CUSTOM_TIME_IN_HOSPITAL,Length of Stay,generic integer,INT,,,Encounter,y
+Payer Code,Code for the payer,LIST_ATTRIBUTE,CUSTOM_PAYER_CODE,Payer Code,generic string,STRING,,,Encounter,y
+Medical Specialty,Specialty of the admitting physician,LIST_ATTRIBUTE,CUSTOM_MEDICAL_SPECIALTY,Medical Specialty,generic string,STRING,,,Encounter,y
+Num Lab Procedures,Number of lab procedures during the encounter,LIST_ATTRIBUTE,CUSTOM_NUM_LAB_PROCEDURES,Number of Lab Procedures,generic integer,INT,,,Clinical Counts,y
+Num Procedures,Number of non-lab procedures during the encounter,LIST_ATTRIBUTE,CUSTOM_NUM_PROCEDURES,Number of Procedures,generic integer,INT,,,Clinical Counts,y
+Num Medications,Number of distinct generic medications administered,LIST_ATTRIBUTE,CUSTOM_NUM_MEDICATIONS,Number of Medications,generic integer,INT,,,Clinical Counts,y
+Number Diagnoses,Number of diagnoses entered for the encounter,LIST_ATTRIBUTE,CUSTOM_NUMBER_DIAGNOSES,Number of Diagnoses,generic integer,INT,,,Clinical Counts,y
+Number Outpatient,Number of outpatient visits in the year before the encounter,LIST_ATTRIBUTE,CUSTOM_NUMBER_OUTPATIENT,Number of Outpatient Visits,generic integer,INT,,,Clinical Counts,y
+Number Emergency,Number of emergency visits in the year before the encounter,LIST_ATTRIBUTE,CUSTOM_NUMBER_EMERGENCY,Number of Emergency Visits,generic integer,INT,,,Clinical Counts,y
+Number Inpatient,Number of inpatient visits in the year before the encounter,LIST_ATTRIBUTE,CUSTOM_NUMBER_INPATIENT,Number of Inpatient Visits,generic integer,INT,,,Clinical Counts,y
+Diag 1,Primary diagnosis ICD-9 code,LIST_ATTRIBUTE,CUSTOM_DIAG_1,Primary Diagnosis,generic string,STRING,,,Diagnoses,y
+Diag 2,Secondary diagnosis ICD-9 code,LIST_ATTRIBUTE,CUSTOM_DIAG_2,Secondary Diagnosis,generic string,STRING,,,Diagnoses,y
+Diag 3,Additional secondary diagnosis ICD-9 code,LIST_ATTRIBUTE,CUSTOM_DIAG_3,Tertiary Diagnosis,generic string,STRING,,,Diagnoses,y
+Max Glu Serum,Result of glucose serum test,LIST_ATTRIBUTE,CUSTOM_MAX_GLU_SERUM,Maximum Glucose Serum,Glucose serum level,CATEGORICAL,,"[""None"","">200"","">300"",""Norm""]",Lab Results,y
+A1C Result,Result of HbA1c test,LIST_ATTRIBUTE,CUSTOM_A1C_RESULT,HbA1c,HbA1c test result,CATEGORICAL,,"[""None"","">7"","">8"",""Norm""]",Lab Results,y
+Metformin,Dosage change of metformin,LIST_ATTRIBUTE,CUSTOM_METFORMIN,Metformin,Drug dosage change,CATEGORICAL,,"[""No"",""Steady"",""Up"",""Down""]",Medication,y
+Repaglinide,Dosage change of repaglinide,LIST_ATTRIBUTE,CUSTOM_REPAGLINIDE,Repaglinide,Drug dosage change,CATEGORICAL,,"[""No"",""Steady"",""Up"",""Down""]",Medication,y
+Nateglinide,Dosage change of nateglinide,LIST_ATTRIBUTE,CUSTOM_NATEGLINIDE,Nateglinide,Drug dosage change,CATEGORICAL,,"[""No"",""Steady"",""Up"",""Down""]",Medication,y
+Chlorpropamide,Dosage change of chlorpropamide,LIST_ATTRIBUTE,CUSTOM_CHLORPROPAMIDE,Chlorpropamide,Drug dosage change,CATEGORICAL,,"[""No"",""Steady"",""Up"",""Down""]",Medication,y
+Glimepiride,Dosage change of glimepiride,LIST_ATTRIBUTE,CUSTOM_GLIMEPIRIDE,Glimepiride,Drug dosage change,CATEGORICAL,,"[""No"",""Steady"",""Up"",""Down""]",Medication,y
+Acetohexamide,Dosage change of acetohexamide,LIST_ATTRIBUTE,CUSTOM_ACETOHEXAMIDE,Acetohexamide,Drug dosage change,CATEGORICAL,,"[""No"",""Steady"",""Up"",""Down""]",Medication,y
+Glipizide,Dosage change of glipizide,LIST_ATTRIBUTE,CUSTOM_GLIPIZIDE,Glipizide,Drug dosage change,CATEGORICAL,,"[""No"",""Steady"",""Up"",""Down""]",Medication,y
+Glyburide,Dosage change of glyburide,LIST_ATTRIBUTE,CUSTOM_GLYBURIDE,Glyburide,Drug dosage change,CATEGORICAL,,"[""No"",""Steady"",""Up"",""Down""]",Medication,y
+Tolbutamide,Dosage change of tolbutamide,LIST_ATTRIBUTE,CUSTOM_TOLBUTAMIDE,Tolbutamide,Drug dosage change,CATEGORICAL,,"[""No"",""Steady"",""Up"",""Down""]",Medication,y
+Pioglitazone,Dosage change of pioglitazone,LIST_ATTRIBUTE,CUSTOM_PIOGLITAZONE,Pioglitazone,Drug dosage change,CATEGORICAL,,"[""No"",""Steady"",""Up"",""Down""]",Medication,y
+Rosiglitazone,Dosage change of rosiglitazone,LIST_ATTRIBUTE,CUSTOM_ROSIGLITAZONE,Rosiglitazone,Drug dosage change,CATEGORICAL,,"[""No"",""Steady"",""Up"",""Down""]",Medication,y
+Acarbose,Dosage change of acarbose,LIST_ATTRIBUTE,CUSTOM_ACARBOSE,Acarbose,Drug dosage change,CATEGORICAL,,"[""No"",""Steady"",""Up"",""Down""]",Medication,y
+Miglitol,Dosage change of miglitol,LIST_ATTRIBUTE,CUSTOM_MIGLITOL,Miglitol,Drug dosage change,CATEGORICAL,,"[""No"",""Steady"",""Up"",""Down""]",Medication,y
+Troglitazone,Dosage change of troglitazone,LIST_ATTRIBUTE,CUSTOM_TROGLITAZONE,Troglitazone,Drug dosage change,CATEGORICAL,,"[""No"",""Steady"",""Up"",""Down""]",Medication,y
+Tolazamide,Dosage change of tolazamide,LIST_ATTRIBUTE,CUSTOM_TOLAZAMIDE,Tolazamide,Drug dosage change,CATEGORICAL,,"[""No"",""Steady"",""Up"",""Down""]",Medication,y
+Examide,Dosage change of examide,LIST_ATTRIBUTE,CUSTOM_EXAMIDE,Examide,Drug dosage change,CATEGORICAL,,"[""No"",""Steady"",""Up"",""Down""]",Medication,y
+Citoglipton,Dosage change of citoglipton,LIST_ATTRIBUTE,CUSTOM_CITOGLIPTON,Citoglipton,Drug dosage change,CATEGORICAL,,"[""No"",""Steady"",""Up"",""Down""]",Medication,y
+Insulin,Dosage change of insulin,LIST_ATTRIBUTE,CUSTOM_INSULIN,Insulin,Drug dosage change,CATEGORICAL,,"[""No"",""Steady"",""Up"",""Down""]",Medication,y
+Glyburide-Metformin,Dosage change of glyburide-metformin combination,LIST_ATTRIBUTE,CUSTOM_GLYBURIDE_METFORMIN,Glyburide-Metformin,Drug dosage change,CATEGORICAL,,"[""No"",""Steady"",""Up"",""Down""]",Medication,y
+Glipizide-Metformin,Dosage change of glipizide-metformin combination,LIST_ATTRIBUTE,CUSTOM_GLIPIZIDE_METFORMIN,Glipizide-Metformin,Drug dosage change,CATEGORICAL,,"[""No"",""Steady"",""Up"",""Down""]",Medication,y
+Glimepiride-Pioglitazone,Dosage change of glimepiride-pioglitazone combination,LIST_ATTRIBUTE,CUSTOM_GLIMEPIRIDE_PIOGLITAZONE,Glimepiride-Pioglitazone,Drug dosage change,CATEGORICAL,,"[""No"",""Steady"",""Up"",""Down""]",Medication,y
+Metformin-Rosiglitazone,Dosage change of metformin-rosiglitazone combination,LIST_ATTRIBUTE,CUSTOM_METFORMIN_ROSIGLITAZONE,Metformin-Rosiglitazone,Drug dosage change,CATEGORICAL,,"[""No"",""Steady"",""Up"",""Down""]",Medication,y
+Metformin-Pioglitazone,Dosage change of metformin-pioglitazone combination,LIST_ATTRIBUTE,CUSTOM_METFORMIN_PIOGLITAZONE,Metformin-Pioglitazone,Drug dosage change,CATEGORICAL,,"[""No"",""Steady"",""Up"",""Down""]",Medication,y
+Change,Whether there was a change in diabetes medications,LIST_ATTRIBUTE,CUSTOM_CHANGE,Medication Change,Medication change indicator,CATEGORICAL,,"[""Ch"",""No""]",Outcome,y
+Diabetes Med,Whether any diabetes medication was prescribed,LIST_ATTRIBUTE,CUSTOM_DIABETES_MED,Diabetes Medication Prescribed,Diabetes medication indicator,CATEGORICAL,,"[""Yes"",""No""]",Outcome,y
+Readmitted,Whether the patient was readmitted,LIST_ATTRIBUTE,CUSTOM_READMISSION,Hospital Readmission,Readmission status,CATEGORICAL,,"[""<30"","">30"",""NO""]",Outcome,y

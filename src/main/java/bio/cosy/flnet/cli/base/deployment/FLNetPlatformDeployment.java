@@ -50,12 +50,13 @@ public class FLNetPlatformDeployment extends BaseFLNetDeployableInstance {
 
     @AssertTrue(message = "A certificate and private key are required: the relay uses TLS with a CA-signed certificate.")
     boolean isCertificateSet() {
-        return getSslCertificate() != null && getSslPrivateKey() != null;
+        // the sandbox relay generates its own self-signed certificate
+        return isSandbox() || (getSslCertificate() != null && getSslPrivateKey() != null);
     }
 
     @AssertTrue(message = "nginx is exposed beyond localhost, so it must terminate SSL itself.")
     boolean isSslWhenExposed() {
-        return isSslEnabled() || isBehindReverseProxy();
+        return isSandbox() || isSslEnabled() || isBehindReverseProxy();
     }
 
 
@@ -126,7 +127,7 @@ public class FLNetPlatformDeployment extends BaseFLNetDeployableInstance {
         put(env, PlatformEnv.NGINX_PORT, getBindIp() + ":" + getNginxPort());
         put(env, PlatformEnv.EXPOSED_RELAY_TCP_PORT, "0.0.0.0:" + getRelayPort());
         put(env, PlatformEnv.MIN_CLIENTS_NEEDED_FOR_LEARNING, getMinClients());
-        putSslEnv(env, null);
+        putSslEnv(env, isSandbox() ? NO_CERTIFICATE : null);
         put(env, PlatformEnv.REQUIRE_CLIENT_AUTHENTICATION, isClientAuth());
         put(env, PlatformEnv.PLATFORM_AGGREGATOR_ENABLED, isPlatformAggregatorEnabled());
         putCommonEnv(env);

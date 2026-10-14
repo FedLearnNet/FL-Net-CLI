@@ -25,7 +25,6 @@ import java.util.Map;
 public class FLNetClientDeployment extends BaseFLNetDeployableInstance {
 
     public static final String LEARNING_SECRETS = "local-learning-secrets.env";
-    private static final String NO_CERTIFICATE = "dummyfile";
     private static final String NO_FEDERATION_HOST = "federated-learning.invalid";
 
     // network

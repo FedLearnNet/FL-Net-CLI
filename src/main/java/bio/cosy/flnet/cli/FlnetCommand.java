@@ -5,6 +5,7 @@ import bio.cosy.flnet.cli.deploy.command.ListCommand;
 import bio.cosy.flnet.cli.diagnostics.command.DoctorCommand;
 import bio.cosy.flnet.cli.platform.command.PlatformCommand;
 import bio.cosy.flnet.cli.helper.VersionProvider;
+import bio.cosy.flnet.cli.sandbox.command.SandboxCommand;
 import bio.cosy.flnet.cli.tool.command.ToolCommand;
 import io.quarkus.picocli.runtime.annotations.TopCommand;
 import picocli.AutoComplete;
@@ -25,6 +26,7 @@ import picocli.CommandLine.ScopeType;
         subcommands = {
                 ClientCommand.class,
                 PlatformCommand.class,
+                SandboxCommand.class,
                 ToolCommand.class,
                 ListCommand.class,
                 DoctorCommand.class,
@@ -36,6 +38,7 @@ import picocli.CommandLine.ScopeType;
                 "  flnet doctor               check prerequisites",
                 "  flnet client init          set up a client that joins a network",
                 "  flnet platform init        set up your own network platform",
+                "  flnet sandbox init         try FL-Net locally: a platform and two clients with test data",
                 "  flnet tool create <name>   start a new tool project",
                 "  flnet list                 show all clients and platforms on this machine",
                 "",

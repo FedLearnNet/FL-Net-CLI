@@ -23,12 +23,19 @@ public class ListCommand implements Callable<Integer> {
     @Override
     public Integer call() {
         List<BaseFLNetDeployableInstance> all = deployments.listAll();
+        // the sandbox is managed as a whole and has its own commands
+        int sandboxMembers = deployments.sandboxMembers().size();
         if (all.isEmpty()) {
             ConsoleHelper.info("Nothing is set up on this machine yet (" + deployments.home() + ").");
             ConsoleHelper.info("Get started with 'flnet client init' or 'flnet platform init'.");
-            return 0;
+        } else {
+            InstanceReportHelper.table(composeBO, all);
         }
-        InstanceReportHelper.table(composeBO, all);
+        if (sandboxMembers > 0) {
+            ConsoleHelper.blank();
+            ConsoleHelper.info("A sandbox (platform and " + (sandboxMembers - 1) + " clients) is set up in " + deployments.sandboxDir() + ":");
+            ConsoleHelper.command("flnet sandbox status");
+        }
         return 0;
     }
 }

@@ -1,0 +1,183 @@
+package bio.cosy.flnet.cli.sandbox;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.fasterxml.jackson.databind.ObjectMapper;
+import com.fasterxml.jackson.databind.node.ArrayNode;
+import com.fasterxml.jackson.databind.node.ObjectNode;
+
+import java.io.IOException;
+import java.io.UncheckedIOException;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.util.ArrayList;
+import java.util.LinkedHashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.function.Consumer;
+
+/**
+ * Turns the files of a regular deployment into their sandbox variant. The deployment bundles themselves stay
+ * production only, so every change is applied to the installed copy and fails loudly when the bundle no longer
+ * contains what it expects.
+ */
+public final class SandboxModifier {
+
+    public static final String OVERRIDE_FILE = "docker-compose.override.yml";
+
+    private static final ObjectMapper JSON = new ObjectMapper();
+
+    private SandboxModifier() {
+    }
+
+    /**
+     * Replaces {@code old}, which must occur exactly once. Blocks are switched off by replacing them with their
+     * commented-out text.
+     */
+    public static void findAndReplace(Path file, String old, String replacement) {
+        try {
+            String content = Files.readString(file, StandardCharsets.UTF_8);
+            int first = content.indexOf(old);
+            if (first < 0 || content.indexOf(old, first + 1) >= 0) {
+                throw new IllegalStateException("Expected exactly one occurrence of the following text in " + file
+                        + ", found " + (first < 0 ? "none" : "several") + ". The sandbox modifications no longer match "
+                        + "the deployment bundle:\n" + old);
+            }
+            Files.writeString(file, content.substring(0, first) + replacement + content.substring(first + old.length()),
+                    StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new UncheckedIOException("Cannot modify " + file, e);
+        }
+    }
+
+    /**
+     * Writes {@code docker-compose.override.yml}, which docker compose merges into docker-compose.yml on its own.
+     */
+    public static void writeComposeOverride(Path directory, ComposeOverride override) {
+        Path file = directory.resolve(OVERRIDE_FILE);
+        try {
+            Files.writeString(file, override.render(), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new UncheckedIOException("Cannot write " + file, e);
+        }
+    }
+
+    public static void patchRealm(Path file, Consumer<ObjectNode> patch) {
+        try {
+            if (!(JSON.readTree(file.toFile()) instanceof ObjectNode realm)) {
+                throw new IllegalStateException(file + " is not a Keycloak realm export.");
+            }
+            patch.accept(realm);
+            JSON.writerWithDefaultPrettyPrinter().writeValue(file.toFile(), realm);
+        } catch (IOException e) {
+            throw new UncheckedIOException("Cannot modify " + file, e);
+        }
+    }
+
+    public static void addUser(ObjectNode realm, String userJson) {
+        try {
+            JsonNode user = JSON.readTree(userJson);
+            ArrayNode users = realm.withArray("users");
+            for (int i = users.size() - 1; i >= 0; i--) {
+                if (user.path("username").equals(users.get(i).path("username"))) {
+                    users.remove(i);
+                }
+            }
+            users.insert(0, user);
+        } catch (IOException e) {
+            throw new UncheckedIOException("Invalid user definition", e);
+        }
+    }
+
+    public static ObjectNode client(ObjectNode realm, String clientId) {
+        for (JsonNode client : realm.path("clients")) {
+            if (clientId.equals(client.path("clientId").asText()) && client instanceof ObjectNode found) {
+                return found;
+            }
+        }
+        throw new IllegalStateException("The realm has no client '" + clientId + "'. The sandbox modifications no longer "
+                + "match the deployment bundle.");
+    }
+
+    public static void addRedirectUri(ObjectNode realm, String clientId, String uri) {
+        ArrayNode uris = client(realm, clientId).withArray("redirectUris");
+        for (JsonNode existing : uris) {
+            if (uri.equals(existing.asText())) {
+                return;
+            }
+        }
+        uris.add(uri);
+    }
+
+
+    /**
+     * The services of a compose override file. Only what the sandbox needs: image, environment, extra hosts and
+     * dropping the volumes of the base file.
+     */
+    public static class ComposeOverride {
+
+        private final Map<String, Service> services = new LinkedHashMap<>();
+
+        public Service service(String name) {
+            return services.computeIfAbsent(name, _ -> new Service());
+        }
+
+        String render() {
+            StringBuilder yaml = new StringBuilder("""
+                    # Generated by 'flnet sandbox'. docker compose merges this file into docker-compose.yml.
+                    # It is rewritten by 'flnet sandbox init' and 'flnet sandbox images set|reset'.
+                    services:
+                    """);
+            services.forEach((name, service) -> {
+                yaml.append("  ").append(name).append(":\n");
+                if (service.image != null) {
+                    yaml.append("    image: ").append(quoted(service.image)).append('\n');
+                }
+                if (!service.environment.isEmpty()) {
+                    yaml.append("    environment:\n");
+                    service.environment.forEach((key, value) -> yaml.append("      ").append(key).append(": ").append(quoted(value)).append('\n'));
+                }
+                if (!service.extraHosts.isEmpty()) {
+                    yaml.append("    extra_hosts:\n");
+                    service.extraHosts.forEach(host -> yaml.append("      - ").append(quoted(host)).append('\n'));
+                }
+                if (service.resetVolumes) {
+                    yaml.append("    volumes: !reset []\n");
+                }
+            });
+            return yaml.toString();
+        }
+
+        private static String quoted(String value) {
+            return '"' + value.replace("\\", "\\\\").replace("\"", "\\\"") + '"';
+        }
+    }
+
+    public static class Service {
+
+        private String image;
+        private final Map<String, String> environment = new LinkedHashMap<>();
+        private final List<String> extraHosts = new ArrayList<>();
+        private boolean resetVolumes;
+
+        public Service image(String image) {
+            this.image = image;
+            return this;
+        }
+
+        public Service env(String key, String value) {
+            environment.put(key, value);
+            return this;
+        }
+
+        public Service extraHost(String host) {
+            extraHosts.add(host);
+            return this;
+        }
+
+        public Service resetVolumes() {
+            resetVolumes = true;
+            return this;
+        }
+    }
+}

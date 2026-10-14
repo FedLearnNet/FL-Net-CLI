@@ -92,7 +92,11 @@ public final class DeploymentBundleHelper {
                         .toList();
             }
         }
-        String manifest = "/bundles/" + kind.bundle() + ".manifest";
+        return manifest(kind.bundle());
+    }
+
+    static List<String> manifest(String bundle) throws IOException {
+        String manifest = "/bundles/" + bundle + ".manifest";
         try (InputStream in = DeploymentBundleHelper.class.getResourceAsStream(manifest)) {
             if (in == null) {
                 throw new IllegalStateException("Embedded bundle manifest " + manifest + " missing, the CLI was built incorrectly.");
@@ -101,6 +105,42 @@ public final class DeploymentBundleHelper {
                     .map(String::strip)
                     .filter(line -> !line.isEmpty())
                     .toList();
+        }
+    }
+
+    /**
+     * Copies the files below {@code folder} of an embedded bundle that is not a deployment (e.g. the sandbox seed
+     * data) to {@code target}, replacing existing files.
+     */
+    public static List<String> extract(String bundle, String folder, Path target) {
+        String prefix = folder + "/";
+        List<String> written = new ArrayList<>();
+        try {
+            for (String file : manifest(bundle)) {
+                if (!file.startsWith(prefix)) {
+                    continue;
+                }
+                Path destination = target.resolve(file.substring(prefix.length())).normalize();
+                if (!destination.startsWith(target)) {
+                    throw new IllegalStateException("Bundle entry escapes target directory: " + file);
+                }
+                Files.createDirectories(destination.getParent());
+                try (InputStream in = openResource(bundle, file)) {
+                    Files.copy(in, destination, StandardCopyOption.REPLACE_EXISTING);
+                }
+                written.add(file);
+            }
+        } catch (IOException e) {
+            throw new UncheckedIOException("Cannot write " + bundle + " files to " + target, e);
+        }
+        return written;
+    }
+
+    public static String resource(String bundle, String file) {
+        try (InputStream in = openResource(bundle, file)) {
+            return new String(in.readAllBytes(), StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new UncheckedIOException("Cannot read embedded bundle file " + file, e);
         }
     }
 
@@ -116,7 +156,11 @@ public final class DeploymentBundleHelper {
         if (bundleDir != null) {
             return Files.newInputStream(bundleDir.resolve(file));
         }
-        InputStream in = DeploymentBundleHelper.class.getResourceAsStream("/bundles/" + kind.bundle() + "/" + file);
+        return openResource(kind.bundle(), file);
+    }
+
+    private static InputStream openResource(String bundle, String file) {
+        InputStream in = DeploymentBundleHelper.class.getResourceAsStream("/bundles/" + bundle + "/" + file);
         if (in == null) {
             throw new IllegalStateException("Embedded bundle file missing: " + file);
         }

@@ -180,8 +180,9 @@ public abstract class BaseFLNetDeploymentBO<T extends BaseFLNetDeployableInstanc
 
 
     public PortPlanner portPlanner(T instance) {
-        List<BaseFLNetDeployableInstance> others = deployments.listAll().stream()
-                .filter(other -> !(other.getKind() == instance.getKind() && other.getName().equals(instance.getName())))
+        List<BaseFLNetDeployableInstance> others = deployments.listAllWithSandbox().stream()
+                .filter(other -> !(other.getKind() == instance.getKind() && other.getName().equals(instance.getName())
+                        && other.isSandbox() == instance.isSandbox()))
                 .toList();
         return new PortPlanner(instance, others);
     }
@@ -196,7 +197,10 @@ public abstract class BaseFLNetDeploymentBO<T extends BaseFLNetDeployableInstanc
         instance.toSecretFiles().forEach((file, variables) -> EnvFileHelper.write(instance.getSecretsDirectory().resolve(file), variables));
         EnvFileHelper.write(instance.getEnvFile(), instance.toEnv(), instance.envComments());
         afterSave(instance);
-        register(instance);
+        if (!instance.isSandbox()) {
+            // sandbox members live in their own folder and are not listed as clients/platforms
+            register(instance);
+        }
         return files;
     }
 

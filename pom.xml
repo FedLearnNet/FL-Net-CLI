@@ -26,6 +26,7 @@
         <!-- Deployment bundles are maintained in this repository and embedded into the CLI. -->
         <flnet.platform.bundle>${project.basedir}/src/main/resources/bundles/platform</flnet.platform.bundle>
         <flnet.client.bundle>${project.basedir}/src/main/resources/bundles/client</flnet.client.bundle>
+        <flnet.sandbox.bundle>${project.basedir}/src/main/resources/bundles/sandbox</flnet.sandbox.bundle>
         <flnet.bundle.output>${project.build.outputDirectory}/bundles</flnet.bundle.output>
     </properties>
 
@@ -161,6 +162,14 @@
                                         <patternset refid="bundle.files"/>
                                     </fileset>
                                 </copy>
+                                <!-- test users and seed data of 'flnet sandbox' -->
+                                <copy todir="${flnet.bundle.output}/sandbox">
+                                    <fileset dir="${flnet.sandbox.bundle}" defaultexcludes="no">
+                                        <exclude name="**/__pycache__/**"/>
+                                        <exclude name="**/*.pyc"/>
+                                        <exclude name="**/.DS_Store"/>
+                                    </fileset>
+                                </copy>
                                 <!-- Resource directories cannot be listed inside a native image,
                                      so every bundle ships with a manifest of its files. -->
                                 <fileset id="platform.manifest.files" dir="${flnet.bundle.output}/platform" defaultexcludes="no"/>
@@ -173,6 +182,11 @@
                                     <map from="${flnet.bundle.output}/client/" to=""/>
                                 </pathconvert>
                                 <echo file="${flnet.bundle.output}/client.manifest" message="${client.manifest}${line.separator}"/>
+                                <fileset id="sandbox.manifest.files" dir="${flnet.bundle.output}/sandbox" defaultexcludes="no"/>
+                                <pathconvert refid="sandbox.manifest.files" property="sandbox.manifest" pathsep="${line.separator}" dirsep="/">
+                                    <map from="${flnet.bundle.output}/sandbox/" to=""/>
+                                </pathconvert>
+                                <echo file="${flnet.bundle.output}/sandbox.manifest" message="${sandbox.manifest}${line.separator}"/>
                             </target>
                         </configuration>
                     </execution>

@@ -17,9 +17,13 @@ public class DoctorCommand implements Callable<Integer> {
         System.out.println();
         boolean ok = check(true, "docker", "missing", "needed to run platform and client", "docker", "--version");
         ok &= check(true, "docker compose", "missing", "v2 plugin, needed to run platform and client", "docker", "compose", "version", "--short");
+        if (ProcessHelper.probe("docker", "compose", "version", "--short").filter(DoctorCommand::isBeforeComposeReset).isPresent()) {
+            System.out.println(Ansi.AUTO.string("@|yellow -|@ " + String.format("%-15s %s", "", "older than 2.24")
+                    + "  @|faint ('flnet sandbox' needs 2.24 or newer)|@"));
+        }
         ok &= check(true, "docker daemon", "not reachable", "start Docker, and make sure your user may access it", "docker", "info", "--format", "{{.ServerVersion}}");
         check(false, "openssl", "not found (optional)", "only for 'flnet client certs'", "openssl", "version");
-        check(false, "python3", "not found (optional)", "only for developing tools", "python3", "--version");
+        check(false, "python3", "not found (optional)", "for developing tools and 'flnet sandbox seed'", "python3", "--version");
         System.out.println();
         if (ok) {
             System.out.println(Ansi.AUTO.string("@|green,bold All required prerequisites are met.|@"));
@@ -27,6 +31,17 @@ public class DoctorCommand implements Callable<Integer> {
         }
         System.out.println(Ansi.AUTO.string("@|red,bold Some required prerequisites are missing.|@ Install guide: https://docs.docker.com/engine/install/"));
         return 3;
+    }
+
+    /** docker compose understands '!reset' in override files, which the sandbox uses, since 2.24. */
+    static boolean isBeforeComposeReset(String version) {
+        String[] parts = version.strip().replaceFirst("^v", "").split("\\.");
+        try {
+            int major = Integer.parseInt(parts[0]);
+            return major < 2 || (major == 2 && parts.length > 1 && Integer.parseInt(parts[1].replaceAll("\\D.*", "")) < 24);
+        } catch (NumberFormatException e) {
+            return false;
+        }
     }
 
     private static boolean check(boolean required, String name, String failure, String purpose, String... command) {

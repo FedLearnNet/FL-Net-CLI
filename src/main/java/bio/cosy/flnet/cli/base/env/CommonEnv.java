@@ -15,7 +15,8 @@ public enum CommonEnv implements EnvVariable {
     TOOL_REGISTRY("host[:port] of the self-hosted registry tools are pulled from without login; empty = GitLab registry only"),
     COMPOSE_PROFILES("'ssl' = nginx terminates SSL with the certificate below, 'no-ssl' = plain HTTP (e.g. behind a reverse proxy)"),
     SSL_CERT_PUBLIC_KEY("SSL certificate (full chain, PEM) used by nginx"),
-    SSL_CERT_PRIVATE_KEY("Private key (PEM) of the SSL certificate");
+    SSL_CERT_PRIVATE_KEY("Private key (PEM) of the SSL certificate"),
+    FLNET_SANDBOX("true = part of the local sandbox ('flnet sandbox'): plain HTTP, self-signed relay, test login");
 
     private final String description;
 }

@@ -6,6 +6,7 @@ scaffolds new FL-Net tools, as a single binary without Python, git or a JDK on t
 ```
 flnet client   init | certs | list | info | up | down | pull | stop | restart | clean | status | logs | compose    run a site that joins a network
 flnet platform init | list | info | up | down | pull | stop | restart | clean | status | logs | compose           run your own network platform
+flnet sandbox  init | up | status | seed | images | logs | restart | stop | down | clean                          try FL-Net locally
 flnet list                                                 all clients and platforms on this machine
 flnet tool     create <name>                               start a new tool project
 flnet doctor                                               check docker, docker compose, openssl
@@ -52,6 +53,58 @@ flnet platform init --domain https://fl.example.org \
     --ssl-key /etc/letsencrypt/live/fl.example.org/privkey.pem
 flnet platform up
 ```
+
+## Try it locally: the sandbox
+
+`flnet sandbox` runs a complete FL-Net network on one machine: a platform and two clients that are already
+connected, plus test data. Use it to try FL-Net without a server, or to test changes end to end.
+
+```bash
+flnet sandbox init            # asks nothing; platform on localhost:8250, clients on 8251 and 8252
+flnet sandbox up              # pulls the images and starts everything (the first start takes a few minutes)
+flnet sandbox seed            # uploads a schema and imports the test data (needs python3)
+flnet sandbox status
+flnet sandbox logs c1 -f      # members: platform, c1, c2, ...
+flnet sandbox clean --purge   # remove it again, including all data
+```
+
+Log in everywhere with user `test` and password `test`. `init` writes a `README.md` into the sandbox folder
+with the addresses, a walkthrough for a first federated learning, and the plain `docker compose` and python
+commands in case you want to run it without `flnet`.
+
+- **One sandbox per machine**, in `$FLNET_HOME/sandbox` (`platform/`, `clients/c1/`, ...). It is separate from
+  `flnet client` and `flnet platform`: it does not show up there and is never picked by them.
+- **For local testing only.** The platform listens on all network interfaces, everyone can log in as `test`
+  and push to its tool registry. Do not run it on a machine that is reachable from an untrusted network, and
+  never put real data in it.
+- **Same deployment files as production.** The sandbox installs the regular platform and client deployment
+  and adds a `docker-compose.override.yml` with its differences (self-signed relay, clients reaching the
+  platform through the docker host, test login).
+
+### Test your own images
+
+Developing FL-Net? Build the image of the service you changed (most repositories have
+`dev_scripts/build_local_docker_image.sh`) and let the sandbox use it:
+
+```bash
+flnet sandbox images                                # the images in use
+flnet sandbox images set orch-api my-orch-api:dev   # for the platform and all clients that run it
+flnet sandbox up                                    # recreates the changed containers
+flnet sandbox images reset                          # back to the published images
+```
+
+Services: `orch-api`, `local-learning-api`, `global-learning-api`, `datamodeler-api`, `controller`,
+`relay-server`, `local-frontend`, `global-frontend`, `pipeline-builder`. Replaced images are not pulled, so
+they only have to exist on this machine. `--image-tag` on `init` selects the published images
+(default `staging`).
+
+### Test data
+
+The sandbox data is a subset of "Diabetes 130-US Hospitals for Years 1999-2008" (Clore, J., Cios, K.,
+DeShazo, J., & Strack, B., 2014, UCI Machine Learning Repository, https://doi.org/10.24432/C5230J),
+licensed under [CC BY 4.0](https://creativecommons.org/licenses/by/4.0/). FL-Net selected a subset and
+split it across two clients. It contains age, gender and race of patients. It is included for
+demonstration and testing only and must not be used for clinical decisions.
 
 ## Several instances on one machine
 
