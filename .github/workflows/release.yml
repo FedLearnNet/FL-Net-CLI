@@ -69,6 +69,22 @@ jobs:
           name: ${{ matrix.asset }}
           path: ${{ matrix.asset }}
           if-no-files-found: error
+      # The same for musl (Alpine)
+      - name: Build musl executable
+        if: ${{ runner.os == 'Linux' }}
+        run: |
+          docker run --rm -v "$PWD:/src" -v "$HOME/.m2:/root/.m2" -w /src \
+            bellsoft/liberica-native-image-kit-container:jdk-25-nik-25.0.4.1-musl \
+            ./mvnw -B --no-transfer-progress package -Dnative -DskipTests
+          sudo chown -R "$(id -u):$(id -g)" target
+          mv target/*-runner "${{ matrix.asset }}-musl"
+          docker run --rm -v "$PWD/${{ matrix.asset }}-musl:/flnet:ro" --entrypoint /flnet docker:29.9.0-dind-alpine3.24 --version
+      - uses: actions/upload-artifact@v7
+        if: ${{ runner.os == 'Linux' }}
+        with:
+          name: ${{ matrix.asset }}-musl
+          path: ${{ matrix.asset }}-musl
+          if-no-files-found: error
 
   jar:
     needs: test

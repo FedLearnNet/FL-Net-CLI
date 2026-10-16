@@ -1,0 +1,12 @@
+# Merged over the docker-compose.yml that 'flnet client init' writes, inside the DinD image only.
+services:
+  local-learning-api:
+    environment:
+      - QUARKUS_REST_CLIENT_ORCH_DOCKER_SERVICE_READ_TIMEOUT=300000
+      - QUARKUS_REST_CLIENT_ORCH_DOCKER_SERVICE_CONNECT_TIMEOUT=10000
+    extra_hosts:
+      - "host.docker.internal:${HOST_DOCKER_INTERNAL_IP:-host-gateway}"
+
+  controller:
+    extra_hosts:
+      - "host.docker.internal:${HOST_DOCKER_INTERNAL_IP:-host-gateway}"

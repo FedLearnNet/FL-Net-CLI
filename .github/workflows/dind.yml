@@ -1,0 +1,62 @@
+name: Client DinD image
+
+# Builds the FL-Net Client DinD image (dind/) with the native flnet that 'Build and release flnet' just
+# published, starts one client from it and waits for its health endpoints, then publishes it for amd64 and
+# arm64: main -> :latest, tag vX -> :vX.
+on:
+  workflow_run:
+    workflows: ["Build and release flnet"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      flnet-version:
+        description: "Release of flnet to use (latest or a tag)"
+        default: latest
+
+permissions:
+  contents: read
+
+jobs:
+  image:
+    if: ${{ github.event_name == 'workflow_dispatch' || (github.event.workflow_run.conclusion == 'success' && github.event.workflow_run.event == 'push') }}
+    runs-on: ubuntu-latest
+    timeout-minutes: 30
+    permissions:
+      contents: read
+      packages: write
+    env:
+      FLNET_VERSION: ${{ inputs.flnet-version || (github.event.workflow_run.head_branch == 'main' && 'latest') || github.event.workflow_run.head_branch }}
+    steps:
+      - uses: actions/checkout@v7
+        with:
+          ref: ${{ github.event.workflow_run.head_sha || github.sha }}
+      - run: docker build --build-arg FLNET_VERSION="$FLNET_VERSION" -t flnet-client-dind dind
+      - name: Smoke test
+        run: |
+          docker run -d --name client --privileged --add-host=host.docker.internal:host-gateway -p 4601:80 \
+            -e DEPLOYED_ON_ADDRESS=http://localhost:4601 \
+            -e FLNET_CLIENT_ARGS="--network custom --platform-url http://host.docker.internal:8250 --no-platform-auth --no-federation" \
+            flnet-client-dind
+          # every health check UP, except the websocket to the platform (no federation); health answers 503 until then
+          healthy='(.checks | length > 0) and all(.checks[]; .name == "websocket-client-readiness" or .status == "UP")'
+          for path in /auth/realms/FLNet-Client /local-learning-api/q/health/live /local-learning-api/q/health/ready /; do
+            echo "▷ $path"
+            until case "$path" in
+                    */q/health/*) curl -sS "http://localhost:4601$path" | jq -e "$healthy" >/dev/null ;;
+                    *) curl -fsS -o /dev/null "http://localhost:4601$path" ;;
+                  esac 2>/dev/null; do
+              sleep 5
+            done
+          done
+        timeout-minutes: 20
+      - name: Logs
+        if: ${{ failure() }}
+        run: docker logs --tail 300 client
+      - name: Publish
+        run: |
+          image="ghcr.io/${GITHUB_REPOSITORY_OWNER,,}/flnet-client-dind"
+          echo "${{ secrets.GITHUB_TOKEN }}" | docker login ghcr.io -u "${{ github.actor }}" --password-stdin
+          docker run --privileged --rm tonistiigi/binfmt --install arm64
+          docker buildx create --use
+          docker buildx build --platform linux/amd64,linux/arm64 --build-arg FLNET_VERSION="$FLNET_VERSION" \
+            -t "$image:$FLNET_VERSION" --push dind
