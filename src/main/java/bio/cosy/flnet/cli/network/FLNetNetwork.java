@@ -16,7 +16,6 @@ public class FLNetNetwork {
     @Getter(AccessLevel.NONE)
     private final List<String> aliases;
     private final int relayPort;
-    private final boolean clientAuth;
     private final String frontend;
     private final int order;
 
@@ -26,7 +25,6 @@ public class FLNetNetwork {
         this.platformUrl = config.platformUrl();
         this.aliases = config.aliases().orElse(List.of());
         this.relayPort = config.relayPort();
-        this.clientAuth = config.clientAuth();
         this.frontend = config.frontend();
         this.order = config.order();
     }

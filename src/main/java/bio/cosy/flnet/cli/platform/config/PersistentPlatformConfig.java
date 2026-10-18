@@ -23,7 +23,6 @@ public class PersistentPlatformConfig {
     private int relayPort;
     @Min(value = 1, message = "At least one client is required to start a learning.")
     private int minClients;
-    private boolean clientAuth = true;
     private boolean platformAggregatorEnabled = false;
 
     // generated secrets

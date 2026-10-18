@@ -21,7 +21,6 @@ public class PersistentClientConfig {
     private final PlatformKeycloakConfig platformKeycloak = new PlatformKeycloakConfig();
     @Range(min = 1, max = 65535, message = "The platform relay port must be between 1 and 65535.")
     private int platformRelayPort;
-    private boolean platformAuth = true;
     private boolean federation = true;
 
     // platform login (outbound credential of local-learning-api, not baked into a volume)
@@ -100,9 +99,9 @@ public class PersistentClientConfig {
         learningClientSecret = null;
     }
 
-    @AssertTrue(message = "The platform requires authentication, so a platform username and password are required.")
+    @AssertTrue(message = "A platform username and password are required.")
     boolean isPlatformLoginComplete() {
-        return !platformAuth || (hasPlatformLogin() && platformPassword != null && !platformPassword.isBlank());
+        return hasPlatformLogin() && platformPassword != null && !platformPassword.isBlank();
     }
 
     @AssertTrue(message = "Automatic access in the default permission requires allowing automatic permissions for that resource.")

@@ -84,10 +84,6 @@ public class PlatformQuestionnaire extends BaseQuestionnaire {
             ConsoleHelper.warn("Fewer than " + PersistentPlatformConfig.RECOMMENDED_MIN_CLIENTS + " clients weakens or disables privacy techniques like SMPC.");
             prompter.requireConfirmation("Continue with a minimum of " + platform.getMinClients() + " clients?");
         }
-        ConsoleHelper.info("With authentication, clients need an account in the platform Keycloak (created by you) and are");
-        ConsoleHelper.info("no longer anonymous, but unknown and potentially malicious clients cannot join. Recommended.");
-        platform.setClientAuth(prompter.confirm("--client-auth", given.getClientAuth(), "Require clients to authenticate?",
-                platform.isClientAuth()));
         ConsoleHelper.info("This lets a project choose to run its FL aggregator on the platform itself, instead of");
         ConsoleHelper.info("always picking a random client - useful when no client should be trusted with that role.");
         platform.setPlatformAggregatorEnabled(prompter.confirm("--platform-aggregator", given.getPlatformAggregatorEnabled(),

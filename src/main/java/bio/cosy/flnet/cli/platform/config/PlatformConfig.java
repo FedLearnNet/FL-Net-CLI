@@ -40,10 +40,6 @@ public class PlatformConfig extends BaseDeploymentConfig {
             description = "Minimum clients required to start a learning (below 3 weakens SMPC privacy). Default: ${bundle:flnet.platform.min-clients}.")
     private Integer minClients;
 
-    @Option(names = "--client-auth", negatable = true,
-            description = "Require clients to authenticate against the platform Keycloak. Default: true.")
-    private Boolean clientAuth;
-
     @Option(names = "--platform-aggregator", negatable = true,
             description = "Allow projects to run their FL aggregator on this platform instead of a random client. Default: false.")
     private Boolean platformAggregatorEnabled;

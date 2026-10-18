@@ -109,9 +109,10 @@ class EndToEndTest {
         // 1. set up
         flnet("platform", "init", "--no-input", "--yes", "--name", name, "--domain", platformUrl, "--port", String.valueOf(platformPort),
                 "--relay-port", String.valueOf(relayPort), "--ssl-cert", cert.toString(), "--ssl-key", key.toString(),
-                "--no-nginx-ssl", "--no-client-auth", "--min-clients", "1", "--image-tag", imageTag);
+                "--no-nginx-ssl", "--min-clients", "1", "--image-tag", imageTag);
         flnet("client", "init", "--no-input", "--yes", "--name", name, "--network", "custom", "--platform-url", platformUrl,
-                "--platform-relay-port", String.valueOf(relayPort), "--no-platform-auth", "--no-federation",
+                "--platform-relay-port", String.valueOf(relayPort), "--platform-username", "e2e-client",
+                "--platform-password-file", Files.writeString(home.resolve("platform-password"), "e2e\n").toString(), "--no-federation",
                 "--listen", "localhost", "--port", String.valueOf(clientPort), "--image-tag", imageTag);
         Path platformDir = home.resolve("platforms").resolve(name);
         Path clientDir = home.resolve("clients").resolve(name);
@@ -126,17 +127,23 @@ class EndToEndTest {
         flnet("platform", "up", "--no-input", "--name", name);
         flnet("client", "up", "--no-input", "--name", name);
 
-        // 3. health: everything behind the nginx of each deployment
+        // 3. health: Quarkus health inside the containers, the rest behind the nginx of each deployment
         Instant deadline = Instant.now().plus(Duration.ofMinutes(Long.getLong("e2e.timeout-minutes", 15)));
+        String platformProject = "fl-net-platform-" + name;
+        String clientProject = "fl-net-client-" + name;
+        awaitContainerHealthy(platformProject, "datamodeler-api", "/q/health", Set.of(), deadline);
+        awaitContainerHealthy(platformProject, "global-learning-api", "/q/health", Set.of(), deadline);
+        awaitContainerHealthy(clientProject, "local-learning-api", "/q/health/live", Set.of(), deadline);
+        awaitContainerHealthy(clientProject, "local-learning-api", "/q/health/ready", CLIENT_READINESS_IGNORED, deadline);
         Map<String, Predicate<HttpResponse<String>>> checks = new LinkedHashMap<>();
         checks.put(platformUrl + "/auth/realms/FLNet-Platform", EndToEndTest::ok);
-        checks.put(platformUrl + "/data-modeler/q/health", response -> healthy(response, Set.of()));
-        checks.put(platformUrl + "/api/q/health", response -> healthy(response, Set.of()));
         checks.put(platformUrl + "/", EndToEndTest::ok);
         checks.put(clientUrl + "/auth/realms/FLNet-Client", EndToEndTest::ok);
-        checks.put(clientUrl + "/local-learning-api/q/health/live", response -> healthy(response, Set.of()));
-        checks.put(clientUrl + "/local-learning-api/q/health/ready", response -> healthy(response, CLIENT_READINESS_IGNORED));
         checks.put(clientUrl + "/", EndToEndTest::ok);
+        // not public: Quarkus endpoints and the data modeler (only via the global API)
+        checks.put(platformUrl + "/api/q/health", EndToEndTest::notFound);
+        checks.put(platformUrl + "/data-modeler/q/health", response -> response.statusCode() != 200 || !response.body().contains("\"checks\""));
+        checks.put(clientUrl + "/local-learning-api/q/health", EndToEndTest::notFound);
         for (var check : checks.entrySet()) {
             awaitHealthy(check.getKey(), check.getValue(), deadline);
         }
@@ -210,17 +217,39 @@ class EndToEndTest {
         fail(url + " did not become healthy in time. Last response: " + last);
     }
 
+    private void awaitContainerHealthy(String project, String service, String path, Set<String> ignored, Instant deadline)
+            throws InterruptedException {
+        String last = "no response";
+        while (Instant.now().isBefore(deadline)) {
+            String container = ProcessHelper.output("docker", "ps", "-q", "--filter", "label=com.docker.compose.project=" + project,
+                    "--filter", "label=com.docker.compose.service=" + service).orElse("").strip();
+            if (!container.isEmpty()) {
+                // without -f: a 503 still has the checks in the body
+                last = ProcessHelper.output("docker", "exec", container, "curl", "-sS", "http://localhost:8080" + path).orElse("curl failed");
+                if (healthy(last, ignored)) {
+                    return;
+                }
+            }
+            Thread.sleep(5_000);
+        }
+        fail(project + "/" + service + " " + path + " did not become healthy in time. Last response: " + last);
+    }
+
     private static boolean ok(HttpResponse<String> response) {
         return response.statusCode() == 200;
+    }
+
+    private static boolean notFound(HttpResponse<String> response) {
+        return response.statusCode() == 404;
     }
 
     /**
      * A MicroProfile health response is healthy if every check (except the ignored ones) is UP. The overall
      * status is not used, so that an ignored check that is DOWN does not fail it.
      */
-    private static boolean healthy(HttpResponse<String> response, Set<String> ignored) {
+    private static boolean healthy(String body, Set<String> ignored) {
         try {
-            JsonNode checks = JSON.readTree(response.body()).path("checks");
+            JsonNode checks = JSON.readTree(body).path("checks");
             if (!checks.isArray() || checks.isEmpty()) {
                 return false;
             }
@@ -231,7 +260,7 @@ class EndToEndTest {
             }
             return true;
         } catch (IOException e) {
-            return false; // e.g. the nginx error page while the service starts
+            return false; // e.g. an error message while the service starts
         }
     }
 

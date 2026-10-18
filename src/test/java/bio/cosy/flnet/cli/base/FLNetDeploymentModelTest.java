@@ -111,16 +111,6 @@ class FLNetDeploymentModelTest {
     }
 
     @Test
-    void clientWithoutPlatformAuthStoresPlaceholderLogin() {
-        FLNetClientDeployment client = client();
-        client.setPlatformAuth(false);
-        client.setPlatformUsername(null);
-        client.setPlatformPassword(null);
-        assertTrue(client.problems(VALIDATOR).isEmpty(), client.problems(VALIDATOR).toString());
-        assertEquals("dummy", client.toSecretFiles().get(FLNetClientDeployment.LEARNING_SECRETS).get("FLNET_GLOBAL_AUTH_USERNAME"));
-    }
-
-    @Test
     void legacyKeycloakPasswordFallbackIsClientOnly() {
         FLNetClientDeployment client = client();
         Map<String, Map<String, String>> files = client.toSecretFiles();
