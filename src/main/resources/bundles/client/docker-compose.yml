@@ -64,7 +64,8 @@ services:
     - QUARKUS_OIDC_DISCOVERY_ENABLED=false
     - QUARKUS_OIDC_AUTH_SERVER_URL=http://keycloak:8080/auth/realms/FLNet-Client
     - QUARKUS_OIDC_TOKEN_PATH=/protocol/openid-connect/token
-    - QUARKUS_OIDC_AUTHORIZATION_PATH=/protocol/openid-connect/auth
+    - QUARKUS_OIDC_AUTHORIZATION_PATH=${DEPLOYED_ON_ADDRESS}/auth/realms/FLNet-Client/protocol/openid-connect/auth
+    - QUARKUS_OIDC_END_SESSION_PATH=${DEPLOYED_ON_ADDRESS}/auth/realms/FLNet-Client/protocol/openid-connect/logout
     - QUARKUS_KEYCLOAK_ADMIN_CLIENT_SERVER_URL=http://keycloak:8080/auth
     - QUARKUS_OIDC_INTROSPECTION_PATH=/protocol/openid-connect/token/introspect
     - QUARKUS_OIDC_JWKS_PATH=/protocol/openid-connect/certs
@@ -163,10 +164,7 @@ services:
         # although this is given in the hostname
       - FRONTEND_BASE_URL=${DEPLOYED_ON_ADDRESS}
         # needed as allowed web origins/redirect URIs as keycloak runs on /auth
-      #- KC_PROXY=edge
-          # edge means HTTPS ends at nginx
       - KC_PROXY_HEADERS=xforwarded
-      #- KC_HOSTNAME_STRICT_BACKCHANNEL='true'
       - KC_LOG_LEVEL=INFO
       - KC_HTTP_ENABLED=true
         # as we don't encrypt between nginx and keycloak (yet)
@@ -223,6 +221,7 @@ services:
       # mode where it's more flexible/robust
     volumes:
       - ./nginx_server.conf:/etc/nginx/nginx.conf
+      - ./nginx_keycloak_admin.conf:/etc/nginx/keycloak-snippets/admin-access.conf:ro
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
         # Overwrites the default server block;
         # WARNING: server_name in this file is patched by client_installer.py
@@ -251,6 +250,7 @@ services:
       # mode where it's more flexible/robust
     volumes:
       - ./nginx_server.conf:/etc/nginx/nginx.conf
+      - ./nginx_keycloak_admin.conf:/etc/nginx/keycloak-snippets/admin-access.conf:ro
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
         # Overwrites the default server block;
         # WARNING: server_name in this file is patched by client_installer.py

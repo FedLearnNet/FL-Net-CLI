@@ -446,8 +446,7 @@
         "clientRole" : true,
         "containerId" : "bded6628-ea08-47e3-870d-a018dbc5130b",
         "attributes" : { }
-      } ],
-      "frontend" : [ ]
+      } ]
     }
   },
   "groups" : [
@@ -935,44 +934,6 @@
     } ],
     "defaultClientScopes" : [ "web-origins", "acr", "openid", "roles", "profile", "microprofile-jwt", "basic", "email" ],
     "optionalClientScopes" : [ "address", "phone", "offline_access" ]
-  }, {
-    "id" : "593c47de-10dd-4911-acce-66fe999c780f",
-    "clientId" : "frontend",
-    "name" : "Global Frontend",
-    "description" : "",
-    "rootUrl" : "",
-    "adminUrl" : "",
-    "baseUrl" : "${FRONTEND_BASE_URL}",
-    "surrogateAuthRequired" : false,
-    "enabled" : true,
-    "alwaysDisplayInConsole" : false,
-    "publicClient" : true,
-    "clientAuthenticatorType" : "public",
-    "redirectUris" : [ "${FRONTEND_BASE_URL}", "${FRONTEND_BASE_URL}/*" ],
-    "webOrigins" : [ "+" ],
-    "notBefore" : 0,
-    "bearerOnly" : false,
-    "consentRequired" : false,
-    "standardFlowEnabled" : true,
-    "implicitFlowEnabled" : false,
-    "directAccessGrantsEnabled" : true,
-    "serviceAccountsEnabled" : false,
-    "frontchannelLogout" : true,
-    "protocol" : "openid-connect",
-    "attributes" : {
-      "pkce.code.challenge.method": "S256",
-      "backchannel.logout.session.required" : "true",
-      "backchannel.logout.revoke.offline.tokens" : "false",
-      "oidc.ciba.grant.enabled" : "false",
-      "oauth2.device.authorization.grant.enabled" : "false",
-      "display.on.consent.screen" : "false",
-      "post.logout.redirect.uris" : "+"
-    },
-    "authenticationFlowBindingOverrides" : { },
-    "fullScopeAllowed" : true,
-    "nodeReRegistrationTimeout" : -1,
-    "defaultClientScopes" : [ "web-origins", "acr", "roles", "profile", "basic", "audience-client-meta-api", "email" ],
-    "optionalClientScopes" : [ "address", "phone", "offline_access", "microprofile-jwt" ]
   }, {
     "id" : "ac2dad4f-d966-4228-aaf7-86be71167106",
     "clientId" : "realm-management",
