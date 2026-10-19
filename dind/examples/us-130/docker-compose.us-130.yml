@@ -1,0 +1,35 @@
+# Added to every US-130 clinic by start.sh: joins the platform run from source on the machine running the
+# containers (global-learning-api on :8080, relay on :9160/:9161, schemas from the dev data-modeler), and
+# subscribes to the US-130 schema with the clinic's own CSV.
+services:
+  local-learning-api:
+    environment:
+      - QUARKUS_REST_CLIENT_GLOBAL_API_URL=http://host.docker.internal:8080
+      - FLNET_GLOBAL_SOCKET_URI=ws://host.docker.internal:8080
+      - QUARKUS_REST_CLIENT_GLOBAL_SCHEMA_API_URL=https://dev.federated-learning.net/data-modeler
+      - flnet.auto-subscribe.enabled=true
+      - flnet.auto-subscribe.us-130.global-schema-id=53bbf74d-0d9f-4a03-8f1a-b120b4fb9063
+      - flnet.auto-subscribe.us-130.cohort-name=US 130 Schema
+      - flnet.auto-subscribe.us-130.etl-data-path=/connectors/clinic.csv
+      - flnet.auto-subscribe.us-130.connector-path=/connectors/us-130-clinics.json
+      - flnet.auto-subscribe.us-130.add-for-user=test
+      - flnet.auto-subscribe.us-130.use-default-cohort-permission=false
+      - flnet.auto-subscribe.us-130.cohort-permission.enabled=true
+      - flnet.auto-subscribe.us-130.cohort-permission.query-retry-time=3
+      - flnet.auto-subscribe.us-130.cohort-permission.is-allowed-to-query=true
+      - flnet.auto-subscribe.us-130.cohort-permission.query-sample-threshold=100
+      - flnet.auto-subscribe.us-130.cohort-permission.auto-training-access=ALL
+      - flnet.auto-subscribe.us-130.cohort-permission.auto-statistics-access=ALL
+      - flnet.auto-subscribe.us-130.cohort-permission.auto-metrics-access=ALL
+      - flnet.auto-subscribe.us-130.enabled-file-watching=false
+    volumes:
+      - /connectors/clinic.csv:/connectors/clinic.csv:ro
+      - /connectors/us-130-clinics.json:/connectors/us-130-clinics.json:ro
+
+  controller:
+    environment:
+      - RELAY_ADDRESS_TCP=host.docker.internal:9161
+      - RELAY_URI_HTTP=http://host.docker.internal:9160
+      - RELAY_TRUST_CERTIFICATE=true
+      - RELAY_TLS_MODE=off
+      - RELAY_MODE=dev

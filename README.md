@@ -116,6 +116,18 @@ is written with owner-only permissions. `--keep-variables` keeps `${VAR}` refere
 entries instead, so the file contains no secrets. Needs the Docker CLI with the compose plugin, but
 not a running daemon. Re-run it after every `init`.
 
+## A client in one container (DinD)
+
+`ghcr.io/fedlearnnet/flnet-client-dind` runs a whole client, including its own Docker daemon, in one
+container, set up with `flnet client init` on start:
+
+```bash
+docker run -d --privileged --add-host=host.docker.internal:host-gateway -p 4601:80 \
+  -e DEPLOYED_ON_ADDRESS=http://localhost:4601 ghcr.io/fedlearnnet/flnet-client-dind:latest
+```
+
+Settings and the US-130 multi-clinic example: [dind/README.md](dind/README.md).
+
 ## Scripted / unattended installs
 
 Every question has a flag (`flnet client init --help`). With `--no-input`, or when no terminal is attached,
