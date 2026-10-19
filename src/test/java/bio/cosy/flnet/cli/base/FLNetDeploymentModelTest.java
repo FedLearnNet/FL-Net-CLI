@@ -273,6 +273,41 @@ class FLNetDeploymentModelTest {
     }
 
     @Test
+    void sapbertIsOffByDefaultAndMountsTheEmptyBundleFolder() {
+        FLNetPlatformDeployment platform = platform();
+        Map<String, String> env = asStrings(platform.toEnv());
+        assertEquals("false", env.get("EMBEDDING_ENABLED"));
+        assertEquals(FLNetPlatformDeployment.BUNDLE_SAPBERT_DIR, env.get("SAPBERT_DIR"));
+
+        FLNetPlatformDeployment loaded = platform();
+        loaded.fromEnv(env);
+        assertFalse(loaded.isSapbertEnabled());
+        assertNull(loaded.getSapbertDir());
+        assertTrue(loaded.getMissingSapbertFiles().isEmpty());
+    }
+
+    @Test
+    void sapbertRoundTripsAndRequiresItsFiles(@TempDir Path dir) throws IOException {
+        FLNetPlatformDeployment platform = platform();
+        platform.setSapbertEnabled(true);
+        assertTrue(platform.problems(VALIDATOR).stream()
+                .anyMatch(e -> e.contains("SapBERT is enabled")), platform.problems(VALIDATOR).toString());
+
+        platform.setSapbertDir(dir);
+        assertTrue(platform.problems(VALIDATOR).isEmpty(), platform.problems(VALIDATOR).toString());
+        assertEquals(List.of(dir.resolve("sapbert.onnx"), dir.resolve("tokenizer.json")), platform.getMissingSapbertFiles());
+        Files.writeString(dir.resolve("sapbert.onnx"), "");
+        Files.writeString(dir.resolve("tokenizer.json"), "");
+        assertTrue(platform.getMissingSapbertFiles().isEmpty());
+
+        FLNetPlatformDeployment loaded = platform();
+        loaded.fromEnv(asStrings(platform.toEnv()));
+        assertTrue(loaded.isSapbertEnabled());
+        assertEquals(dir, loaded.getSapbertDir());
+        assertEquals(platform.toEnv().toString(), loaded.toEnv().toString());
+    }
+
+    @Test
     void secretFileNamesMatchTheWrittenFiles() {
         FLNetClientDeployment client = client();
         assertEquals(client.toSecretFiles().keySet(), client.getSecretFileNames());

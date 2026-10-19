@@ -27,6 +27,7 @@ public class PlatformQuestionnaire extends BaseQuestionnaire {
         network(given, platform, platformBO.portPlanner(platform));
         certificate(given, platform);
         learning(given, platform);
+        embedding(given, platform);
     }
 
     private void domain(PlatformConfig given, FLNetPlatformDeployment platform) {
@@ -88,5 +89,20 @@ public class PlatformQuestionnaire extends BaseQuestionnaire {
         ConsoleHelper.info("always picking a random client - useful when no client should be trusted with that role.");
         platform.setPlatformAggregatorEnabled(prompter.confirm("--platform-aggregator", given.getPlatformAggregatorEnabled(),
                 "Allow the platform to run the FL aggregator for projects that choose to?", platform.isPlatformAggregatorEnabled()));
+    }
+
+    private void embedding(PlatformConfig given, FLNetPlatformDeployment platform) {
+        section("5. Ontology embeddings (SapBERT)",
+                "SapBERT embeddings enable the semantic (RAG) search over ontologies in the data modeler.",
+                "The model is not shipped with FL-Net: you need a folder with "
+                        + String.join(" and ", PersistentPlatformConfig.SAPBERT_FILES) + ".",
+                "Without it only the list search is available.");
+        platform.setSapbertEnabled(prompter.confirm("--sapbert", given.getSapbertEnabled(),
+                "Use SapBERT embeddings for ontology search?", platform.isSapbertEnabled()));
+        if (platform.isSapbertEnabled()) {
+            platform.setSapbertDir(directory("--sapbert-dir", given.getSapbertDir(),
+                    "Folder containing " + String.join(" and ", PersistentPlatformConfig.SAPBERT_FILES),
+                    platform.getSapbertDir(), PersistentPlatformConfig.SAPBERT_FILES));
+        }
     }
 }
