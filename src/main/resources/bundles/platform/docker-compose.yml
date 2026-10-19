@@ -8,13 +8,15 @@ services:
         # uses neo4j as username, so if you rename this and recreate secrets things will break
         # be careful!
       - QUARKUS_OIDC_TOKEN_ISSUER=${DEPLOYED_ON_DOMAIN}/auth/realms/FLNet-Platform
+        # defaults keep platforms initialized before these keys existed working
+      - EMBEDDING_ENABLED=${EMBEDDING_ENABLED:-true}
     env_file:
       - env/datamodeler-secrets.env
     networks:
       - global-learning-network
     volumes:
       - ./umls:/data/umls:ro
-      - ./sapbert:/data/sapbert:ro
+      - ${SAPBERT_DIR:-./sapbert}:/data/sapbert:ro
     depends_on:
       datamodeler-db:
         condition: service_healthy

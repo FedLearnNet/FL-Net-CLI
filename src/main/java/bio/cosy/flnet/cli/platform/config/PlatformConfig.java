@@ -43,4 +43,12 @@ public class PlatformConfig extends BaseDeploymentConfig {
     @Option(names = "--platform-aggregator", negatable = true,
             description = "Allow projects to run their FL aggregator on this platform instead of a random client. Default: false.")
     private Boolean platformAggregatorEnabled;
+
+    @Option(names = "--sapbert", negatable = true,
+            description = "Enable SapBERT embeddings for semantic ontology search. The model is not shipped and must be provided. Default: false.")
+    private Boolean sapbertEnabled;
+
+    @Option(names = "--sapbert-dir", paramLabel = "<dir>",
+            description = "Folder containing sapbert.onnx and tokenizer.json, mounted into the datamodeler.")
+    private Path sapbertDir;
 }

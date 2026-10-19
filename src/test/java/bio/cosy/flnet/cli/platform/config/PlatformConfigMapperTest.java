@@ -5,6 +5,8 @@ import io.quarkus.test.junit.QuarkusTest;
 import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
 
+import java.nio.file.Path;
+
 import static org.junit.jupiter.api.Assertions.assertEquals;
 
 @QuarkusTest
@@ -22,6 +24,8 @@ class PlatformConfigMapperTest {
         options.setRelayPort(9153);
         options.setMinClients(5);
         options.setPlatformAggregatorEnabled(true);
+        options.setSapbertEnabled(true);
+        options.setSapbertDir(Path.of("/opt/sapbert"));
 
         PersistentPlatformConfig target = new PersistentPlatformConfig();
         mapper.updateFromOptions(options, target);
@@ -32,6 +36,8 @@ class PlatformConfigMapperTest {
         assertEquals(9153, target.getRelayPort());
         assertEquals(5, target.getMinClients());
         assertEquals(true, target.isPlatformAggregatorEnabled());
+        assertEquals(true, target.isSapbertEnabled());
+        assertEquals(Path.of("/opt/sapbert"), target.getSapbertDir());
     }
 
     @Test
@@ -44,5 +50,6 @@ class PlatformConfigMapperTest {
 
         assertEquals(1234, target.getNginxPort());
         assertEquals(false, target.isPlatformAggregatorEnabled());
+        assertEquals(false, target.isSapbertEnabled());
     }
 }
