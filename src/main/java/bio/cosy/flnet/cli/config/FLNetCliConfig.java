@@ -36,6 +36,8 @@ public interface FLNetCliConfig {
 
     ToolSettings tool();
 
+    UpdateSettings update();
+
     interface NetworkSettings {
 
         @NotBlank(message = "Every network needs a name.")
@@ -141,6 +143,16 @@ public interface FLNetCliConfig {
         int minClients();
 
         String keycloakAdminUsername();
+    }
+
+    interface UpdateSettings {
+
+        // GitHub API listing of the CLI releases
+        @NotBlank
+        String releasesUrl();
+
+        @NotBlank
+        String installUrl();
     }
 
     interface ToolSettings {
