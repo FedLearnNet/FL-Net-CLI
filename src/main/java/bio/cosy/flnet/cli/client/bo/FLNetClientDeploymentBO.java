@@ -70,16 +70,14 @@ public class FLNetClientDeploymentBO extends BaseFLNetDeploymentBO<FLNetClientDe
         client.setNetworkKey(network.getKey());
         client.setPlatformAddress(WebAddress.parse(network.getPlatformUrl()));
         client.setPlatformRelayPort(network.getRelayPort());
-        client.setPlatformAuth(network.isClientAuth());
         client.setFrontendImage(networks.clientFrontendImage(network.getPlatformUrl(), client.getImageTag()));
         applyToolRegistry(client);
     }
 
-    public void applyCustomPlatform(FLNetClientDeployment client, WebAddress platform, int relayPort, boolean auth) {
+    public void applyCustomPlatform(FLNetClientDeployment client, WebAddress platform, int relayPort) {
         client.setNetworkKey(FLNetNetworkBO.CUSTOM);
         client.setPlatformAddress(platform);
         client.setPlatformRelayPort(relayPort);
-        client.setPlatformAuth(auth);
         if (networks.byPlatformUrl(platform.toString()).isPresent() || client.getFrontendImage() == null) {
             client.setFrontendImage(networks.clientFrontendImage(platform.toString(), client.getImageTag()));
         }

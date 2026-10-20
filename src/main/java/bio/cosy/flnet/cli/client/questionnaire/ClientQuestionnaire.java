@@ -110,16 +110,11 @@ public class ClientQuestionnaire extends BaseQuestionnaire {
                 previousUrl, WebAddress::validate));
         int relay = Integer.parseInt(prompter.text("--platform-relay-port", text(given.getPlatformRelayPort()), "TCP relay port of the platform",
                 String.valueOf(client.getPlatformRelayPort()), NetworkHelper::validatePort));
-        boolean auth = prompter.confirm("--platform-auth", given.getPlatformAuth(), "Does the platform require client authentication?",
-                client.isPlatformAuth());
-        clientBO.applyCustomPlatform(client, platform, relay, auth);
+        clientBO.applyCustomPlatform(client, platform, relay);
     }
 
 
     private void credentials(ClientConfig given, FLNetClientDeployment client, ClientInitMode mode) {
-        if (!client.isPlatformAuth()) {
-            return;
-        }
         section("2. Platform account");
         if (mode == ClientInitMode.RECONFIGURE && client.hasPlatformLogin() && !prompter.confirm("--update-credentials",
                 given.getUpdateCredentials(), "Replace the stored platform login (" + client.getPlatformUsername() + ")?", false)) {

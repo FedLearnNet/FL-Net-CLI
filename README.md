@@ -53,6 +53,16 @@ flnet platform init --domain https://fl.example.org \
 flnet platform up
 ```
 
+SapBERT embeddings (semantic ontology search in the data modeler) are optional and off by default. The model is not
+shipped with FL-Net. To use it, provide a folder containing `sapbert.onnx` and `tokenizer.json`; it is mounted into
+the datamodeler as is:
+
+```bash
+flnet platform init --sapbert --sapbert-dir /opt/sapbert
+```
+
+`--no-sapbert` turns it off again. Without it only the list search is available.
+
 ## Several instances on one machine
 
 Every client and platform is a named instance in `$FLNET_HOME` (default `~/fl-net`):

@@ -100,14 +100,13 @@ class FlnetCommandTest {
         assertFalse(Files.exists(target.resolve(".env")), "nothing may be written before all answers are known");
 
         String[] args = {"platform", "init", "--no-input", "--dir", target.toString(), "--domain", "https://fl.example.org",
-                "--bind-ip", "0.0.0.0", "--ssl-cert", cert.toString(), "--ssl-key", key.toString(), "--no-client-auth",
+                "--bind-ip", "0.0.0.0", "--ssl-cert", cert.toString(), "--ssl-key", key.toString(),
                 "--image-tag", "test-tag", "--frontend-image", "example/platform:custom"};
         assertEquals(0, launcher.launch(args).exitCode());
         Map<String, String> env = EnvFileHelper.read(target.resolve(".env"));
         assertEquals("https://fl.example.org", env.get("DEPLOYED_ON_DOMAIN"));
         assertEquals("0.0.0.0:8250", env.get("NGINX_PORT"));
         assertEquals("ssl", env.get("COMPOSE_PROFILES"));
-        assertEquals("false", env.get("REQUIRE_CLIENT_AUTHENTICATION"));
         assertEquals("test-tag", env.get("IMAGE_TAG"));
         assertEquals("example/platform:custom", env.get("FRONTEND_IMAGE"));
         assertEquals("rw-------", PosixFilePermissions.toString(Files.getPosixFilePermissions(target.resolve(".env"))));
@@ -163,7 +162,9 @@ class FlnetCommandTest {
         org.junit.jupiter.api.Assumptions.assumeTrue(
                 bio.cosy.flnet.cli.helper.ProcessHelper.probe("openssl", "version").isPresent(), "openssl required");
         Path target = dir.resolve("client");
+        String password = Files.writeString(dir.resolve("password"), "s3cret\n").toString();
         LaunchResult result = launcher.launch("client", "init", "--no-input", "--dir", target.toString(), "--network", "daibetes",
+                "--platform-username", "alice", "--platform-password-file", password,
                 "--domain", "https://flnet.internal", "--ssl", "self-signed", "--ip", "10.0.0.5", "--days", "30");
         assertEquals(0, result.exitCode(), result.getErrorOutput());
         assertTrue(Files.exists(target.resolve("self_signed_certs/fullchain.pem")));
@@ -173,6 +174,7 @@ class FlnetCommandTest {
 
         Path later = dir.resolve("later");
         LaunchResult skipped = launcher.launch("client", "init", "--no-input", "--dir", later.toString(), "--name", "later", "--network", "daibetes",
+                "--platform-username", "alice", "--platform-password-file", password,
                 "--domain", "https://flnet.internal", "--ssl", "self-signed", "--no-create-certificate");
         assertEquals(0, skipped.exitCode(), skipped.getErrorOutput());
         assertFalse(Files.exists(later.resolve("self_signed_certs/fullchain.pem")));
@@ -206,8 +208,9 @@ class FlnetCommandTest {
         Path generated = target.resolve("docker-compose.generated.yml");
 
         // --compose on init writes <dir>/docker-compose.generated.yml with the secrets inlined, owner-only
+        String password = Files.writeString(dir.resolve("password"), "s3cret\n").toString();
         LaunchResult init = launcher.launch("client", "init", "--no-input", "--dir", target.toString(), "--network", "daibetes",
-                "--compose");
+                "--platform-username", "alice", "--platform-password-file", password, "--compose");
         assertEquals(0, init.exitCode(), init.getErrorOutput());
         String resolved = Files.readString(generated);
         assertTrue(resolved.contains("name: fl-net-client"), resolved);

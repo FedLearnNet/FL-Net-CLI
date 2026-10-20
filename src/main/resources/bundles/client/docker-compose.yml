@@ -59,17 +59,19 @@ services:
     - QUARKUS_DATASOURCE_USERNAME=user
     - QUARKUS_REST_CLIENT_ORCH_DOCKER_SERVICE_URL=http://orch-api:8080
     - QUARKUS_REST_CLIENT_CONTROLLER_API_URL=http://controller:8000
-    - QUARKUS_REST_CLIENT_GLOBAL_SCHEMA_API_URL=${GLOBAL_HTTP_PROTOCOL}://${GLOBAL_DOMAIN}/data-modeler
     - QUARKUS_REST_CLIENT_GLOBAL_API_URL=${GLOBAL_HTTP_PROTOCOL}://${GLOBAL_DOMAIN}/api
     - FLNET_GLOBAL_SOCKET_URI=${GLOBAL_WS_PROTOCOL}://${GLOBAL_FEDERATION_HOST}/api
     - QUARKUS_OIDC_DISCOVERY_ENABLED=false
     - QUARKUS_OIDC_AUTH_SERVER_URL=http://keycloak:8080/auth/realms/FLNet-Client
     - QUARKUS_OIDC_TOKEN_PATH=/protocol/openid-connect/token
-    - QUARKUS_OIDC_AUTHORIZATION_PATH=/protocol/openid-connect/auth
+    - QUARKUS_OIDC_AUTHORIZATION_PATH=${DEPLOYED_ON_ADDRESS}/auth/realms/FLNet-Client/protocol/openid-connect/auth
+    - QUARKUS_OIDC_END_SESSION_PATH=${DEPLOYED_ON_ADDRESS}/auth/realms/FLNet-Client/protocol/openid-connect/logout
     - QUARKUS_KEYCLOAK_ADMIN_CLIENT_SERVER_URL=http://keycloak:8080/auth
     - QUARKUS_OIDC_INTROSPECTION_PATH=/protocol/openid-connect/token/introspect
     - QUARKUS_OIDC_JWKS_PATH=/protocol/openid-connect/certs
     - QUARKUS_OIDC_TOKEN_ISSUER=${DEPLOYED_ON_ADDRESS}/auth/realms/FLNet-Client
+    # backend-for-frontend: browser login via code flow
+    - FLNET_BFF_FRONTEND_URL=${DEPLOYED_ON_ADDRESS}
     - QUARKUS_KEYCLOAK_ADMIN_CLIENT_REALM=FLNet-Client
     - QUARKUS_OIDC_CLIENT_ID=local-learning-api
     - QUARKUS_KEYCLOAK_ADMIN_CLIENT_CLIENT_ID=local-learning-api
@@ -84,7 +86,6 @@ services:
     - FLNET_COHORT_COHORT_PERMISSION_AUTO_TRAINING_ACCESS=${COHORT_PERMISSION_AUTO_TRAINING_ACCESS:-NONE}
     - FLNET_COHORT_COHORT_PERMISSION_AUTO_STATISTICS_ACCESS=${COHORT_PERMISSION_AUTO_STATISTICS_ACCESS:-NONE}
     - FLNET_COHORT_COHORT_PERMISSION_AUTO_METRICS_ACCESS=${COHORT_PERMISSION_AUTO_METRICS_ACCESS:-NONE}
-    - FLNET_GLOBAL_AUTH_ENABLE=${GLOBAL_KEYCLOAK_ENABLED}
     - QUARKUS_OIDC_CLIENT_GLOBAL_WEBSOCKET_AUTH_SERVER_URL=${GLOBAL_KEYCLOAK_URL}
     - QUARKUS_OIDC_CLIENT_ENABLED=${FEDERATED_LEARNING_ENABLED}
     - FLNET_GLOBAL_SOCKET_ENABLED=${FEDERATED_LEARNING_ENABLED}
@@ -163,10 +164,7 @@ services:
         # although this is given in the hostname
       - FRONTEND_BASE_URL=${DEPLOYED_ON_ADDRESS}
         # needed as allowed web origins/redirect URIs as keycloak runs on /auth
-      #- KC_PROXY=edge
-          # edge means HTTPS ends at nginx
       - KC_PROXY_HEADERS=xforwarded
-      #- KC_HOSTNAME_STRICT_BACKCHANNEL='true'
       - KC_LOG_LEVEL=INFO
       - KC_HTTP_ENABLED=true
         # as we don't encrypt between nginx and keycloak (yet)
@@ -223,22 +221,19 @@ services:
       # mode where it's more flexible/robust
     volumes:
       - ./nginx_server.conf:/etc/nginx/nginx.conf
+      - ./nginx_keycloak_admin.conf:/etc/nginx/keycloak-snippets/admin-access.conf:ro
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
         # Overwrites the default server block;
         # WARNING: server_name in this file is patched by client_installer.py
         # To change the domain, re-run the installer instead of editing this file
       - ./nginx_conf_HTTP.conf:/etc/nginx/conf.d/ssl-config.conf:ro
     depends_on:
-      # depends on everything as if it can't discover the services, it will fail and exit
+      # the upstreams of nginx.conf: if it can't discover them on startup, it fails and exits
       instance-manager-frontend:
-        condition: service_started
-      controller:
         condition: service_started
       keycloak:
         condition: service_healthy
       local-learning-api:
-        condition: service_started
-      orch-api:
         condition: service_started
     networks:
       - local-learning-network
@@ -255,6 +250,7 @@ services:
       # mode where it's more flexible/robust
     volumes:
       - ./nginx_server.conf:/etc/nginx/nginx.conf
+      - ./nginx_keycloak_admin.conf:/etc/nginx/keycloak-snippets/admin-access.conf:ro
       - ./nginx.conf:/etc/nginx/conf.d/default.conf:ro
         # Overwrites the default server block;
         # WARNING: server_name in this file is patched by client_installer.py
@@ -267,13 +263,9 @@ services:
       # depends on everything as if it can't discover the services, it will fail and exit
       instance-manager-frontend:
         condition: service_started
-      controller:
-        condition: service_started
       keycloak:
         condition: service_healthy
       local-learning-api:
-        condition: service_started
-      orch-api:
         condition: service_started
     networks:
       - local-learning-network
