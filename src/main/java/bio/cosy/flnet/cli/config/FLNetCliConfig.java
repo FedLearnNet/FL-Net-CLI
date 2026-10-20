@@ -48,9 +48,6 @@ public interface FLNetCliConfig {
 
         @Range(min = 1, max = 65535, message = "Ports must be between 1 and 65535.")
         int relayPort();
-
-        boolean clientAuth();
-
         @WithDefault("fl-net")
         String frontend();
 

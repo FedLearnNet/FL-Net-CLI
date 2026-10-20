@@ -1,5 +1,7 @@
 package bio.cosy.flnet.cli;
 
+import java.util.List;
+import java.util.ArrayList;
 import bio.cosy.flnet.cli.helper.EnvFileHelper;
 import io.quarkus.test.junit.main.LaunchResult;
 import io.quarkus.test.junit.main.QuarkusMainLauncher;
@@ -26,9 +28,20 @@ class InstancesTest {
     @TempDir
     Path home;
 
+    private Path passwordFile;
+
     @BeforeEach
-    void isolateHome() {
+    void isolateHome() throws IOException {
         System.setProperty("flnet.home", home.toString());
+        passwordFile = Files.writeString(home.resolve("platform-password"), "s3cret\n");
+    }
+
+    // clients always need a platform login
+    private String[] clientInit(String... args) {
+        List<String> all = new ArrayList<>(List.of("client", "init", "--no-input",
+                "--platform-username", "alice", "--platform-password-file", passwordFile.toString()));
+        all.addAll(List.of(args));
+        return all.toArray(String[]::new);
     }
 
     @AfterEach
@@ -38,17 +51,17 @@ class InstancesTest {
 
     @Test
     void secondClientNeedsANameAndGetsItsOwnPortAndProject(QuarkusMainLauncher launcher) throws IOException {
-        assertEquals(0, launcher.launch("client", "init", "--no-input", "--network", "daibetes").exitCode());
+        assertEquals(0, launcher.launch(clientInit("--network", "daibetes")).exitCode());
         Map<String, String> first = EnvFileHelper.read(home.resolve("clients/" + DEFAULT_NAME + "/.env"));
         assertEquals("fl-net-client", first.get("COMPOSE_PROJECT_NAME"));
         assertEquals(DEFAULT_NAME, first.get("FLNET_INSTANCE_NAME"));
 
-        LaunchResult unnamed = launcher.launch("client", "init", "--no-input", "--network", "daibetes");
+        LaunchResult unnamed = launcher.launch(clientInit("--network", "daibetes"));
         assertEquals(2, unnamed.exitCode());
         assertTrue(unnamed.getOutput().contains("already has 1 FL-Net Client instance"), unnamed.getOutput());
         assertTrue(unnamed.getErrorOutput().contains("Pass --name"), unnamed.getErrorOutput());
 
-        LaunchResult named = launcher.launch("client", "init", "--no-input", "--network", "daibetes", "--name", "site-b");
+        LaunchResult named = launcher.launch(clientInit("--network", "daibetes", "--name", "site-b"));
         assertEquals(0, named.exitCode(), named.getErrorOutput());
         Map<String, String> second = EnvFileHelper.read(home.resolve("clients/site-b/.env"));
         assertEquals("fl-net-client-site-b", second.get("COMPOSE_PROJECT_NAME"));
@@ -59,8 +72,8 @@ class InstancesTest {
         assertTrue(named.getOutput().contains("flnet client up --name site-b"), named.getOutput());
 
         // an explicit port of another instance is refused, the failed instance leaves nothing behind
-        LaunchResult conflict = launcher.launch("client", "init", "--no-input", "--network", "daibetes", "--name", "site-c",
-                "--port", first.get("EXPOSED_PORT"));
+        LaunchResult conflict = launcher.launch(clientInit("--network", "daibetes", "--name", "site-c",
+                "--port", first.get("EXPOSED_PORT")));
         assertEquals(2, conflict.exitCode());
         assertTrue(conflict.getErrorOutput().contains("already used by client '" + DEFAULT_NAME + "'"), conflict.getErrorOutput());
         assertTrue(Files.notExists(home.resolve("clients/site-c/.env")));
@@ -77,7 +90,7 @@ class InstancesTest {
 
     @Test
     void selectsListsAndShowsInstances(QuarkusMainLauncher launcher) {
-        assertEquals(0, launcher.launch("client", "init", "--no-input", "--network", "daibetes").exitCode());
+        assertEquals(0, launcher.launch(clientInit("--network", "daibetes")).exitCode());
 
         // one instance: selected automatically, info shows details directly
         LaunchResult info = launcher.launch("client", "info");
@@ -85,7 +98,7 @@ class InstancesTest {
         assertTrue(info.getOutput().contains("FL-Net Client '" + DEFAULT_NAME + "'"), info.getOutput());
         assertTrue(info.getOutput().replaceAll(" +", " ").contains("Compose project fl-net-client"), info.getOutput());
 
-        assertEquals(0, launcher.launch("client", "init", "--no-input", "--network", "microbaiome", "--name", "micro").exitCode());
+        assertEquals(0, launcher.launch(clientInit("--network", "microbaiome", "--name", "micro")).exitCode());
 
         // several instances: info lists them, operations need --name
         LaunchResult list = launcher.launch("client", "info");
@@ -108,7 +121,7 @@ class InstancesTest {
         assertEquals(0, all.exitCode());
         assertTrue(all.getOutput().contains("client     micro"), all.getOutput());
 
-        LaunchResult badName = launcher.launch("client", "init", "--no-input", "--name", "Site_B");
+        LaunchResult badName = launcher.launch(clientInit("--name", "Site_B"));
         assertEquals(2, badName.exitCode());
     }
 
@@ -117,11 +130,10 @@ class InstancesTest {
         LaunchResult help = launcher.launch("client", "init", "--help");
         assertTrue(help.getOutput().replaceAll("\\s+", " ").contains("Network to join: flnet, microbaiome, daibetes,"), help.getOutput());
 
-        assertEquals(0, launcher.launch("client", "init", "--no-input", "--network", "microbaiome").exitCode());
+        assertEquals(0, launcher.launch(clientInit("--network", "microbaiome")).exitCode());
         Map<String, String> env = EnvFileHelper.read(home.resolve("clients/" + DEFAULT_NAME + "/.env"));
         assertEquals("microb-ai-net.federated-learning.net", env.get("GLOBAL_DOMAIN"));
         assertEquals("9154", env.get("GLOBAL_TCP_PORT"));
         assertEquals("ghcr.io/fedlearnnet/frontends/local-microbaiome:latest", env.get("FRONTEND_IMAGE"));
-        assertEquals("false", env.get("GLOBAL_KEYCLOAK_ENABLED"));
     }
 }
