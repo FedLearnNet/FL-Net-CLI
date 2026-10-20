@@ -6,19 +6,19 @@ import bio.cosy.flnet.cli.helper.ReleaseVersion;
 import bio.cosy.flnet.cli.helper.VersionProvider;
 import jakarta.inject.Inject;
 import picocli.CommandLine.Command;
-import picocli.CommandLine.Option;
 
 import java.util.Optional;
 import java.util.concurrent.Callable;
 
+// TODO: tell them how to actually update their client
 @Command(name = "update", description = {
-        "Check whether a newer flnet version is available and show how to install it.",
-        "Release candidates are only offered with --pre or when this flnet is one itself."
+        "Check whether a newer flnet version is available."
 })
 public class UpdateCommand implements Callable<Integer> {
 
-    @Option(names = "--pre", description = "Also offer release candidates (X.Y.Z.rcN).")
-    boolean includeCandidates;
+    // @Option(names = "--pre", description = "Also offer release candidates (X.Y.Z.rcN).")
+    // boolean includeCandidates;
+    // Currently RC is not used
 
     @Inject
     UpdateBO updateBO;
@@ -30,7 +30,7 @@ public class UpdateCommand implements Callable<Integer> {
     public Integer call() {
         String installed = VersionProvider.version();
         Optional<ReleaseVersion> current = ReleaseVersion.parse(installed);
-        Optional<UpdateBO.Release> newer = UpdateBO.newer(updateBO.releases(), current, includeCandidates);
+        Optional<UpdateBO.Release> newer = UpdateBO.newer(updateBO.releases(), current, false);
 
         ConsoleHelper.info("Installed: flnet " + installed);
         if (newer.isEmpty()) {
@@ -39,10 +39,6 @@ public class UpdateCommand implements Callable<Integer> {
         }
         String version = newer.get().version().toString();
         ConsoleHelper.info("Available: flnet " + version + (current.isEmpty() ? " (installed version unknown)" : ""));
-        ConsoleHelper.blank();
-        ConsoleHelper.info("To update, run:");
-        ConsoleHelper.command("curl -fsSL " + config.update().installUrl() + " | FLNET_VERSION=" + version + " sh");
-        ConsoleHelper.info("Release notes: " + newer.get().url());
         return 0;
     }
 }
