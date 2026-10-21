@@ -39,8 +39,32 @@ jobs:
           cache: maven
       - run: ./mvnw verify
 
+  # Runs on every workflow run; the builds below and therefore all releases need it to pass.
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      # Quarkus 3.39 native builds require GraalVM/Mandrel 25.
+      - uses: graalvm/setup-graalvm@v1
+        with:
+          java-version: "25"
+          distribution: graalvm-community
+          cache: maven
+          github-token: ${{ secrets.GITHUB_TOKEN }}
+      - name: Build native executable
+        run: ./mvnw package -Dnative -DskipTests
+      - name: Smoke test
+        run: |
+          ./target/*-runner --version
+          ./target/*-runner tool create smoke --type analysis --federated --no-input -o "$RUNNER_TEMP/smoke"
+          test -f "$RUNNER_TEMP/smoke/aggregator.py"
+          ./target/*-runner client init --no-input --dir "$RUNNER_TEMP/client" --network daibetes
+          test -f "$RUNNER_TEMP/client/env/keycloak-secrets.env"
+          ./target/*-runner client compose --dir "$RUNNER_TEMP/client" -o - --keep-variables | grep -q "name: fl-net-client"
+          ./target/*-runner generate-completion > /dev/null
+
   native:
-    needs: [version, test]
+    needs: [version, test, smoke]
     if: needs.version.outputs.release == 'true' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' || github.event_name == 'workflow_dispatch'
     strategy:
       fail-fast: false
@@ -62,18 +86,9 @@ jobs:
           github-token: ${{ secrets.GITHUB_TOKEN }}
       - name: Build native executable
         run: ./mvnw package -Dnative -DskipTests
-      - name: Smoke test
+      - name: Check and rename the executable
         run: |
           ./target/*-runner --version
-          ./target/*-runner tool create smoke --type analysis --federated --no-input -o "$RUNNER_TEMP/smoke"
-          test -f "$RUNNER_TEMP/smoke/aggregator.py"
-          ./target/*-runner client init --no-input --dir "$RUNNER_TEMP/client" --network daibetes
-          test -f "$RUNNER_TEMP/client/env/keycloak-secrets.env"
-          # macOS runners have no docker CLI
-          if [ "$RUNNER_OS" = "Linux" ]; then
-            ./target/*-runner client compose --dir "$RUNNER_TEMP/client" -o - --keep-variables | grep -q "name: fl-net-client"
-          fi
-          ./target/*-runner generate-completion > /dev/null
           mv target/*-runner "${{ matrix.asset }}"
       - uses: actions/upload-artifact@v7
         with:
@@ -82,7 +97,7 @@ jobs:
           if-no-files-found: error
 
   jar:
-    needs: [version, test]
+    needs: [version, test, smoke]
     if: needs.version.outputs.release == 'true' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
