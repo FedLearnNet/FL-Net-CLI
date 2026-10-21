@@ -24,7 +24,8 @@ curl -fsSL https://raw.githubusercontent.com/FedLearnNet/FL-Net-CLI/main/install
 The script downloads the native binary for your platform from the GitHub release, verifies its
 SHA-256 checksum and installs it to `~/.local/bin` (`/usr/local/bin` as root). Options:
 `FLNET_VERSION=1.0.0`, `FLNET_INSTALL_DIR=/opt/bin`, `FLNET_DOWNLOAD_URL=https://mirror.internal/flnet`
-(internal mirror holding the release assets and `SHA256SUMS`).
+(internal mirror holding the release assets and `SHA256SUMS`). `FLNET_VERSION=staging` installs the newest
+build of `develop`.
 
 `flnet update` tells you when a newer release exists and prints the install command for it
 (release candidates `X.Y.Z.rcN` only with `--pre`, or when you run one).
