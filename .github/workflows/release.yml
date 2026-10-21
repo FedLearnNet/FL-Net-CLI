@@ -1,7 +1,8 @@
 name: Build and release flnet
 
 # The version comes from pom.xml. The first build of a new X.Y.Z.rcN (develop) or X.Y.Z (main) publishes it as a
-# GitHub release, see FedLearnNet/.github/actions/version. Every main build also replaces the rolling "latest" release.
+# GitHub release, see FedLearnNet/.github/actions/version. Every main build also replaces the rolling "latest" release,
+# every develop build the rolling "staging" release.
 on:
   push:
     branches: [main, develop]
@@ -40,7 +41,7 @@ jobs:
 
   native:
     needs: [version, test]
-    if: needs.version.outputs.release == 'true' || github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    if: needs.version.outputs.release == 'true' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' || github.event_name == 'workflow_dispatch'
     strategy:
       fail-fast: false
       matrix:
@@ -82,7 +83,7 @@ jobs:
 
   jar:
     needs: [version, test]
-    if: needs.version.outputs.release == 'true' || github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    if: needs.version.outputs.release == 'true' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -147,3 +148,28 @@ jobs:
           gh release delete latest --yes --cleanup-tag || true
           gh release create latest dist/* --title "flnet (latest, $(git rev-parse --short HEAD))" --prerelease \
             --notes "Continuously rebuilt from the newest commit on main; replaced on every push. For a stable, permanent release, use a tagged version instead."
+
+  release-staging:
+    needs: [native, jar]
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Checksums
+        run: |
+          cp install.sh dist/
+          cd dist && sha256sum flnet-* flnet.jar install.sh > SHA256SUMS && cat SHA256SUMS
+      - name: Replace the staging build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        # --target: without it the new tag would point at the default branch (main)
+        run: |
+          gh release delete staging --yes --cleanup-tag || true
+          gh release create staging dist/* --target "$GITHUB_SHA" --title "flnet (staging, $(git rev-parse --short HEAD))" --prerelease \
+            --notes "Continuously rebuilt from the newest commit on develop for the staging deployment; replaced on every push."
