@@ -1,9 +1,11 @@
 name: Build and release flnet
 
+# The version comes from pom.xml. The first build of a new X.Y.Z.rcN (develop) or X.Y.Z (main) publishes it as a
+# GitHub release, see FedLearnNet/.github/actions/version. Every main build also replaces the rolling "latest" release,
+# every develop build the rolling "staging" release.
 on:
   push:
-    branches: [main]
-    tags: ["v*", "*.*.*"]
+    branches: [main, develop]
   pull_request:
   workflow_dispatch:
 
@@ -14,6 +16,18 @@ env:
   MAVEN_ARGS: -B --no-transfer-progress
 
 jobs:
+  version:
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    outputs:
+      version: ${{ steps.version.outputs.version }}
+      release: ${{ steps.version.outputs.release }}
+      prerelease: ${{ steps.version.outputs.prerelease }}
+    steps:
+      - uses: actions/checkout@v7
+      - id: version
+        uses: FedLearnNet/.github/actions/version@main
+
   test:
     runs-on: ubuntu-latest
     steps:
@@ -25,9 +39,34 @@ jobs:
           cache: maven
       - run: ./mvnw verify
 
+  # Runs on every workflow run; the builds below and therefore all releases need it to pass.
+  # Uses the JVM build, a native build takes minutes. The native binaries only get the
+  # --version check in the native job.
+  smoke:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-java@v6
+        with:
+          distribution: temurin
+          java-version: "25"
+          cache: maven
+      - run: ./mvnw package -DskipTests
+      - name: Smoke test
+        run: |
+          flnet() { java -jar target/quarkus-app/quarkus-run.jar "$@"; }
+          flnet --version
+          flnet tool create smoke --type analysis --federated --no-input -o "$RUNNER_TEMP/smoke"
+          test -f "$RUNNER_TEMP/smoke/aggregator.py"
+          FLNET_PLATFORM_PASSWORD=smoke flnet client init --no-input --dir "$RUNNER_TEMP/client" --network flnet \
+            --platform-username smoke
+          test -f "$RUNNER_TEMP/client/env/keycloak-secrets.env"
+          flnet client compose --dir "$RUNNER_TEMP/client" -o - --keep-variables | grep -q "name: fl-net-client"
+          flnet generate-completion > /dev/null
+
   native:
-    needs: test
-    if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    needs: [version, test, smoke]
+    if: needs.version.outputs.release == 'true' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' || github.event_name == 'workflow_dispatch'
     strategy:
       fail-fast: false
       matrix:
@@ -46,23 +85,11 @@ jobs:
           distribution: graalvm-community
           cache: maven
           github-token: ${{ secrets.GITHUB_TOKEN }}
-      - name: Set version from tag
-        if: startsWith(github.ref, 'refs/tags/')
-        run: ./mvnw versions:set -DnewVersion="${GITHUB_REF_NAME#v}" -DgenerateBackupPoms=false
       - name: Build native executable
         run: ./mvnw package -Dnative -DskipTests
-      - name: Smoke test
+      - name: Check and rename the executable
         run: |
           ./target/*-runner --version
-          ./target/*-runner tool create smoke --type analysis --federated --no-input -o "$RUNNER_TEMP/smoke"
-          test -f "$RUNNER_TEMP/smoke/aggregator.py"
-          ./target/*-runner client init --no-input --dir "$RUNNER_TEMP/client" --network daibetes
-          test -f "$RUNNER_TEMP/client/env/keycloak-secrets.env"
-          # macOS runners have no docker CLI
-          if [ "$RUNNER_OS" = "Linux" ]; then
-            ./target/*-runner client compose --dir "$RUNNER_TEMP/client" -o - --keep-variables | grep -q "name: fl-net-client"
-          fi
-          ./target/*-runner generate-completion > /dev/null
           mv target/*-runner "${{ matrix.asset }}"
       - uses: actions/upload-artifact@v7
         with:
@@ -71,8 +98,8 @@ jobs:
           if-no-files-found: error
 
   jar:
-    needs: test
-    if: startsWith(github.ref, 'refs/tags/') || github.ref == 'refs/heads/main' || github.event_name == 'workflow_dispatch'
+    needs: [version, test, smoke]
+    if: needs.version.outputs.release == 'true' || github.ref == 'refs/heads/main' || github.ref == 'refs/heads/develop' || github.event_name == 'workflow_dispatch'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v7
@@ -81,9 +108,6 @@ jobs:
           distribution: temurin
           java-version: "25"
           cache: maven
-      - name: Set version from tag
-        if: startsWith(github.ref, 'refs/tags/')
-        run: ./mvnw versions:set -DnewVersion="${GITHUB_REF_NAME#v}" -DgenerateBackupPoms=false
       - run: ./mvnw package -DskipTests -Dquarkus.package.jar.type=uber-jar
       - run: mv target/*-runner.jar flnet.jar && java -jar flnet.jar --version
       - uses: actions/upload-artifact@v7
@@ -93,8 +117,8 @@ jobs:
           if-no-files-found: error
 
   release:
-    needs: [native, jar]
-    if: startsWith(github.ref, 'refs/tags/')
+    needs: [version, native, jar]
+    if: needs.version.outputs.release == 'true'
     runs-on: ubuntu-latest
     permissions:
       contents: write
@@ -111,7 +135,11 @@ jobs:
       - name: Publish GitHub release
         env:
           GH_TOKEN: ${{ github.token }}
-        run: gh release create "$GITHUB_REF_NAME" dist/* --title "flnet $GITHUB_REF_NAME" --generate-notes
+          VERSION: ${{ needs.version.outputs.version }}
+          PRERELEASE: ${{ needs.version.outputs.prerelease }}
+        run: |
+          gh release create "$VERSION" dist/* --target "$GITHUB_SHA" \
+            --title "flnet $VERSION" --generate-notes --prerelease="$PRERELEASE"
 
   release-latest:
     needs: [native, jar]
@@ -136,3 +164,28 @@ jobs:
           gh release delete latest --yes --cleanup-tag || true
           gh release create latest dist/* --title "flnet (latest, $(git rev-parse --short HEAD))" --prerelease \
             --notes "Continuously rebuilt from the newest commit on main; replaced on every push. For a stable, permanent release, use a tagged version instead."
+
+  release-staging:
+    needs: [native, jar]
+    if: github.ref == 'refs/heads/develop'
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/download-artifact@v8
+        with:
+          path: dist
+          merge-multiple: true
+      - name: Checksums
+        run: |
+          cp install.sh dist/
+          cd dist && sha256sum flnet-* flnet.jar install.sh > SHA256SUMS && cat SHA256SUMS
+      - name: Replace the staging build
+        env:
+          GH_TOKEN: ${{ github.token }}
+        # --target: without it the new tag would point at the default branch (main)
+        run: |
+          gh release delete staging --yes --cleanup-tag || true
+          gh release create staging dist/* --target "$GITHUB_SHA" --title "flnet (staging, $(git rev-parse --short HEAD))" --prerelease \
+            --notes "Continuously rebuilt from the newest commit on develop for the staging deployment; replaced on every push."
