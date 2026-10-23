@@ -132,6 +132,8 @@ public class FLNetPlatformDeployment extends BaseFLNetDeployableInstance {
         put(env, PlatformEnv.HOSTNAME, getDomain().host());
         put(env, PlatformEnv.NGINX_PORT, getBindIp() + ":" + getNginxPort());
         put(env, PlatformEnv.EXPOSED_RELAY_TCP_PORT, "0.0.0.0:" + getRelayPort());
+        // derived from domain and relay port, so fromEnv does not read it back
+        put(env, PlatformEnv.PLATFORM_RELAY_ADDRESS, getDomain().host() + ":" + getRelayPort());
         put(env, PlatformEnv.MIN_CLIENTS_NEEDED_FOR_LEARNING, getMinClients());
         putSslEnv(env, null);
         put(env, PlatformEnv.PLATFORM_AGGREGATOR_ENABLED, isPlatformAggregatorEnabled());

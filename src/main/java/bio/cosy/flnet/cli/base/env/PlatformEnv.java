@@ -12,6 +12,7 @@ public enum PlatformEnv implements EnvVariable {
     HOSTNAME("Bare domain of the platform; the relay checks that its TLS certificate is valid for it"),
     NGINX_PORT("nginx bind address: 127.0.0.1 = localhost only (behind a reverse proxy), 0.0.0.0 = all interfaces"),
     EXPOSED_RELAY_TCP_PORT("Address and TCP port of the relay that clients connect to for federated learning"),
+    PLATFORM_RELAY_ADDRESS("Domain and TCP port of the relay for the platform's own controller (FL aggregator on the platform); the domain must match the relay's TLS certificate"),
     MIN_CLIENTS_NEEDED_FOR_LEARNING("Minimum number of clients a federated learning needs (fewer weaken privacy techniques such as SMPC)"),
     PLATFORM_AGGREGATOR_ENABLED("true = projects may run their FL aggregator on this platform instead of a random client"),
     EMBEDDING_ENABLED("true = the datamodeler creates SapBERT embeddings for semantic ontology search"),
