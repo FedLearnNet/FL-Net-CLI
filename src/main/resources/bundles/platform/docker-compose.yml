@@ -151,6 +151,10 @@ services:
     # if you change the name also change the relevant env var in the orch api (CONTAINER_NETWORK_CONTROLLER)
     container_name: ${COMPOSE_PROJECT_NAME}-controller
     restart: always
+    environment:
+      # Used when the FL aggregator runs on the platform: connect to this platform's relay via its public
+      # domain, since the TLS certificate is checked against that domain
+      - RELAY_ADDRESS_TCP=${PLATFORM_RELAY_ADDRESS}
     networks:
       - global-learning-network
 
