@@ -40,6 +40,7 @@ public class PlatformInitCommand extends BaseInitCommand {
         questionnaire.ask(given, platform);
         write(platformBO, platform, given);
         nextSteps(platformBO.nextSteps(platform));
+        stagingWarning(platform);
         return 0;
     }
 }

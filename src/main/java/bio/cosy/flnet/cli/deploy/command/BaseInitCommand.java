@@ -68,6 +68,12 @@ public abstract class BaseInitCommand implements Callable<Integer> {
         }
     }
 
+    protected static void stagingWarning(BaseFLNetDeployableInstance instance) {
+        if ("staging".equals(instance.getImageTag())) {
+            ConsoleHelper.warn("This deployment uses the staging build (IMAGE_TAG=staging). It may be less stable than a release.");
+        }
+    }
+
     protected static void nextSteps(List<String> lines) {
         ConsoleHelper.heading("Next steps");
         ConsoleHelper.lines(lines);

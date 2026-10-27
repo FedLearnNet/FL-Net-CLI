@@ -32,7 +32,7 @@ public class FLNetPlatformDeploymentBO extends BaseFLNetDeploymentBO<FLNetPlatfo
     @Override
     protected FLNetPlatformDeployment create() {
         FLNetPlatformDeployment platform = new FLNetPlatformDeployment();
-        platform.setImageTag(config.images().tag());
+        platform.setImageTag(networks.imageTag());
         platform.setKeycloakAdminUsername(config.platform().keycloakAdminUsername());
         platform.setDomain(WebAddress.parse(config.platform().domain()));
         platform.setBindIp(config.platform().bindIp());

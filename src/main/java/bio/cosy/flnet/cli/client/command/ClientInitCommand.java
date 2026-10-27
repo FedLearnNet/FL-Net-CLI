@@ -61,6 +61,7 @@ public class ClientInitCommand extends BaseInitCommand {
         if (saved != null) {
             ConsoleHelper.info("(Saved to " + saved + ")");
         }
+        stagingWarning(client);
         return 0;
     }
 }
