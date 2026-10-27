@@ -43,7 +43,7 @@ public class FLNetClientDeploymentBO extends BaseFLNetDeploymentBO<FLNetClientDe
     @Override
     protected FLNetClientDeployment create() {
         FLNetClientDeployment client = new FLNetClientDeployment();
-        client.setImageTag(config.images().tag());
+        client.setImageTag(networks.imageTag());
         client.setKeycloakAdminUsername(config.client().keycloakAdminUsername());
         client.setKeycloakRealmPath(config.keycloakRealmPath());
         client.setPort(config.client().port());
