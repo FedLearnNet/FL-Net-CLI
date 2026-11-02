@@ -8,6 +8,7 @@ import jakarta.inject.Inject;
 
 import java.nio.file.Files;
 import java.nio.file.Path;
+import java.util.List;
 
 public abstract class BaseQuestionnaire {
 
@@ -46,6 +47,22 @@ public abstract class BaseQuestionnaire {
             ConsoleHelper.warn("'" + path + "' does not exist (yet). It must exist before 'up'.");
         }
         return path;
+    }
+
+    // a folder that must already contain all required files
+    protected Path directory(String flag, Path given, String question, Path previous, List<String> requiredFiles) {
+        String value = prompter.text(flag, text(given), question, text(previous), input -> {
+            if (input.isBlank()) {
+                return "A folder is required.";
+            }
+            Path dir = Path.of(input);
+            if (!Files.isDirectory(dir)) {
+                return "'" + input + "' is not a folder.";
+            }
+            List<String> missing = requiredFiles.stream().filter(file -> !Files.isRegularFile(dir.resolve(file))).toList();
+            return missing.isEmpty() ? null : "'" + input + "' does not contain " + String.join(", ", missing) + ".";
+        });
+        return Path.of(value).toAbsolutePath().normalize();
     }
 
     protected static String text(Object value) {

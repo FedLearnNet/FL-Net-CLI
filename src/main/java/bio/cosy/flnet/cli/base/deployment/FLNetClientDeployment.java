@@ -136,8 +136,8 @@ public class FLNetClientDeployment extends BaseFLNetDeployableInstance {
 
     @Override
     public Map<String, Map<String, String>> toSecretFiles() {
-        String username = isPlatformAuth() && hasPlatformLogin() ? getPlatformUsername() : PersistentClientConfig.NO_AUTH_CREDENTIAL;
-        String password = isPlatformAuth() && getPlatformPassword() != null ? getPlatformPassword() : PersistentClientConfig.NO_AUTH_CREDENTIAL;
+        String username = hasPlatformLogin() ? getPlatformUsername() : PersistentClientConfig.NO_AUTH_CREDENTIAL;
+        String password = getPlatformPassword() != null ? getPlatformPassword() : PersistentClientConfig.NO_AUTH_CREDENTIAL;
         Map<String, Map<String, String>> files = new LinkedHashMap<>();
         files.put(ORCH_SECRETS, ordered(
                 CommonSecretEnv.POSTGRES_PASSWORD.key(), getOrchDbPassword(),
@@ -208,7 +208,6 @@ public class FLNetClientDeployment extends BaseFLNetDeployableInstance {
         put(env, ClientEnv.COHORT_PERMISSION_AUTO_STATISTICS_ACCESS, getAutoStatistics());
         put(env, ClientEnv.COHORT_PERMISSION_AUTO_METRICS_ACCESS, getAutoMetrics());
         put(env, ClientEnv.GLOBAL_KEYCLOAK_URL, getPlatformKeycloakUrl());
-        put(env, ClientEnv.GLOBAL_KEYCLOAK_ENABLED, isPlatformAuth());
         return env;
     }
 
@@ -224,7 +223,6 @@ public class FLNetClientDeployment extends BaseFLNetDeployableInstance {
         }
         setPlatformRelayPort(intOr(ClientEnv.GLOBAL_TCP_PORT.in(env), getPlatformRelayPort()));
         setFederation(bool(ClientEnv.FEDERATED_LEARNING_ENABLED.in(env), isFederation()));
-        setPlatformAuth(bool(ClientEnv.GLOBAL_KEYCLOAK_ENABLED.in(env), isPlatformAuth()));
         if (!isSslEnabled()) {
             sslSource = SslSource.NONE;
         } else if (getSslCertificate() != null && getSslCertificate().equals(getSelfSignedCertificate())) {

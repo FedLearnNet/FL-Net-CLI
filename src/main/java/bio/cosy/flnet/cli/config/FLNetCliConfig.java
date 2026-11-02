@@ -36,6 +36,8 @@ public interface FLNetCliConfig {
 
     ToolSettings tool();
 
+    UpdateSettings update();
+
     interface NetworkSettings {
 
         @NotBlank(message = "Every network needs a name.")
@@ -48,9 +50,6 @@ public interface FLNetCliConfig {
 
         @Range(min = 1, max = 65535, message = "Ports must be between 1 and 65535.")
         int relayPort();
-
-        boolean clientAuth();
-
         @WithDefault("fl-net")
         String frontend();
 
@@ -144,6 +143,16 @@ public interface FLNetCliConfig {
         int minClients();
 
         String keycloakAdminUsername();
+    }
+
+    interface UpdateSettings {
+
+        // GitHub API listing of the CLI releases
+        @NotBlank
+        String releasesUrl();
+
+        @NotBlank
+        String installUrl();
     }
 
     interface ToolSettings {

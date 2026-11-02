@@ -436,8 +436,7 @@
           "containerId": "2b1496a2-7a8a-4c8b-80be-aded5ddcc8ee",
           "attributes": {}
         }
-      ],
-      "frontend": []
+      ]
     }
   },
   "groups": [
@@ -777,67 +776,6 @@
       ]
     },
     {
-      "id": "baacc1a7-dd86-451a-8e05-8f756aa97541",
-      "clientId": "frontend",
-      "name": "",
-      "description": "",
-      "rootUrl": "${FRONTEND_BASE_URL}/",
-      "adminUrl": "${FRONTEND_BASE_URL}/",
-      "baseUrl": "${FRONTEND_BASE_URL}/",
-      "surrogateAuthRequired": false,
-      "enabled": true,
-      "alwaysDisplayInConsole": false,
-      "clientAuthenticatorType": "client-secret",
-      "redirectUris": [
-        "${FRONTEND_BASE_URL}",
-        "${FRONTEND_BASE_URL}/*"
-      ],
-      "webOrigins": [
-        "${FRONTEND_BASE_URL}"
-      ],
-      "notBefore": 0,
-      "bearerOnly": false,
-      "consentRequired": false,
-      "standardFlowEnabled": true,
-      "implicitFlowEnabled": false,
-      "directAccessGrantsEnabled": false,
-      "serviceAccountsEnabled": false,
-      "publicClient": true,
-      "frontchannelLogout": true,
-      "protocol": "openid-connect",
-      "attributes": {
-        "realm_client": "false",
-        "oidc.ciba.grant.enabled": "false",
-        "backchannel.logout.session.required": "true",
-        "standard.token.exchange.enabled": "false",
-        "frontchannel.logout.session.required": "true",
-        "post.logout.redirect.uris": "+",
-        "display.on.consent.screen": "false",
-        "oauth2.device.authorization.grant.enabled": "false",
-        "pkce.code.challenge.method": "S256",
-        "backchannel.logout.revoke.offline.tokens": "false",
-        "dpop.bound.access.tokens": "false"
-      },
-      "authenticationFlowBindingOverrides": {},
-      "fullScopeAllowed": true,
-      "nodeReRegistrationTimeout": -1,
-      "defaultClientScopes": [
-        "web-origins",
-        "acr",
-        "roles",
-        "profile",
-        "basic",
-        "email"
-      ],
-      "optionalClientScopes": [
-        "address",
-        "phone",
-        "organization",
-        "offline_access",
-        "microprofile-jwt"
-      ]
-    },
-    {
       "id": "e977f09f-316f-4c3f-a796-e4016b2b6066",
       "clientId": "local-learning-api",
       "name": "",
@@ -851,15 +789,13 @@
       "clientAuthenticatorType": "client-secret",
       "secret": "${LOCAL_LEARNING_SECRET}",
       "redirectUris": [
-        "/*"
+        "${FRONTEND_BASE_URL}/local-learning-api/bff/login"
       ],
-      "webOrigins": [
-        "/*"
-      ],
+      "webOrigins": [],
       "notBefore": 0,
       "bearerOnly": false,
       "consentRequired": false,
-      "standardFlowEnabled": false,
+      "standardFlowEnabled": true,
       "implicitFlowEnabled": false,
       "directAccessGrantsEnabled": false,
       "serviceAccountsEnabled": true,
@@ -873,7 +809,8 @@
         "backchannel.logout.session.required": "true",
         "standard.token.exchange.enabled": "false",
         "frontchannel.logout.session.required": "true",
-        "post.logout.redirect.uris": "+",
+        "post.logout.redirect.uris": "${FRONTEND_BASE_URL}/",
+        "pkce.code.challenge.method": "S256",
         "oauth2.device.authorization.grant.enabled": "false",
         "display.on.consent.screen": "false",
         "backchannel.logout.revoke.offline.tokens": "false",
@@ -898,6 +835,22 @@
         "offline_access",
         "microprofile-jwt",
         "federated-learning-websocket-access"
+      ],
+      "protocolMappers": [
+        {
+          "name": "audience-local-learning-api",
+          "protocol": "openid-connect",
+          "protocolMapper": "oidc-audience-mapper",
+          "consentRequired": false,
+          "config": {
+            "included.client.audience": "local-learning-api",
+            "id.token.claim": "false",
+            "lightweight.claim": "false",
+            "introspection.token.claim": "true",
+            "access.token.claim": "true",
+            "userinfo.token.claim": "false"
+          }
+        }
       ]
     },
     {

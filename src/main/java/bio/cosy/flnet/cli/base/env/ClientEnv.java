@@ -31,8 +31,7 @@ public enum ClientEnv implements EnvVariable {
     COHORT_PERMISSION_AUTO_TRAINING_ACCESS("Default permission: automatic learning access (ALL, NONE, CERTIFIED_APPS)"),
     COHORT_PERMISSION_AUTO_STATISTICS_ACCESS("Default permission: automatic statistics access (ALL, NONE, CERTIFIED_APPS)"),
     COHORT_PERMISSION_AUTO_METRICS_ACCESS("Default permission: automatic metrics access (ALL, NONE, CERTIFIED_APPS)"),
-    GLOBAL_KEYCLOAK_URL("Keycloak realm of the platform used to log in (empty without federation)"),
-    GLOBAL_KEYCLOAK_ENABLED("true = log in to the platform with the platform credentials in env/");
+    GLOBAL_KEYCLOAK_URL("Keycloak realm of the platform used to log in (empty without federation)");
 
     private final String description;
 }

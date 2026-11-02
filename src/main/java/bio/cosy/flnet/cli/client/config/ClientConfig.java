@@ -29,9 +29,6 @@ public class ClientConfig extends BaseDeploymentConfig {
     @Option(names = "--platform-relay-port", paramLabel = "<port>", description = "Custom network: TCP port of the platform relay. Default: ${bundle:flnet.client.custom-relay-port}.")
     private Integer platformRelayPort;
 
-    @Option(names = "--platform-auth", negatable = true, description = "Custom network: the platform requires client authentication. Default: true.")
-    private Boolean platformAuth;
-
     @Option(names = "--federation", negatable = true, description = "Take part in federated queries and learning. Default: true.")
     private Boolean federation;
 

@@ -6,6 +6,7 @@ import bio.cosy.flnet.cli.diagnostics.command.DoctorCommand;
 import bio.cosy.flnet.cli.platform.command.PlatformCommand;
 import bio.cosy.flnet.cli.helper.VersionProvider;
 import bio.cosy.flnet.cli.tool.command.ToolCommand;
+import bio.cosy.flnet.cli.update.UpdateCommand;
 import io.quarkus.picocli.runtime.annotations.TopCommand;
 import picocli.AutoComplete;
 import picocli.CommandLine.Command;
@@ -28,6 +29,7 @@ import picocli.CommandLine.ScopeType;
                 ToolCommand.class,
                 ListCommand.class,
                 DoctorCommand.class,
+                UpdateCommand.class,
                 AutoComplete.GenerateCompletion.class,
         },
         footer = {
@@ -38,6 +40,7 @@ import picocli.CommandLine.ScopeType;
                 "  flnet platform init        set up your own network platform",
                 "  flnet tool create <name>   start a new tool project",
                 "  flnet list                 show all clients and platforms on this machine",
+                "  flnet update               check for a newer flnet version",
                 "",
                 "Settings: ~/.config/flnet/application.properties (see flnet.* in the built-in application.properties)",
                 "",

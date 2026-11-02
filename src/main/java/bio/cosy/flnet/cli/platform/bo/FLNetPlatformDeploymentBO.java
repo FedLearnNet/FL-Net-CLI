@@ -76,9 +76,7 @@ public class FLNetPlatformDeploymentBO extends BaseFLNetDeploymentBO<FLNetPlatfo
         lines.add("  flnet platform up" + nameFlag(platform));
         lines.add("Keycloak admin credentials: " + platform.getSecretsDirectory().resolve(FLNetPlatformDeployment.KEYCLOAK_SECRETS)
                 + " (change the password after first login).");
-        if (platform.isClientAuth()) {
-            lines.add("Client authentication is on: create an account in the platform Keycloak for every client.");
-        }
+        lines.add("Create an account in the platform Keycloak for every client.");
         if (platform.isSslEnabled()) {
             lines.add("After renewing the certificate, reload nginx: docker compose exec reverse-proxy-encrypted nginx -s reload");
         }

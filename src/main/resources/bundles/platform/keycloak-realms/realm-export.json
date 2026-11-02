@@ -79,6 +79,14 @@
       "containerId" : "038ece1f-db50-4b94-9c50-2561da60f763",
       "attributes" : { }
     }, {
+      "id" : "afa28fec-bfb6-44be-ade1-285649717750",
+      "name" : "Data-Modeler",
+      "description" : "Create, update and delete schemas, ontologies and datatypes",
+      "composite" : false,
+      "clientRole" : false,
+      "containerId" : "038ece1f-db50-4b94-9c50-2561da60f763",
+      "attributes" : { }
+    }, {
       "id" : "c690eaa9-e195-4ef4-b5dc-81a7e6017d4d",
       "name" : "Auditor",
       "description" : "",
@@ -438,8 +446,7 @@
         "clientRole" : true,
         "containerId" : "bded6628-ea08-47e3-870d-a018dbc5130b",
         "attributes" : { }
-      } ],
-      "frontend" : [ ]
+      } ]
     }
   },
   "groups" : [
@@ -690,7 +697,7 @@
     "alwaysDisplayInConsole" : false,
     "clientAuthenticatorType" : "client-secret",
     "secret" : "${DATABASE_API_SECRET}",
-    "redirectUris" : [ ],
+    "redirectUris" : [ "${FRONTEND_BASE_URL}/api/bff/login" ],
     "webOrigins" : [ ],
     "notBefore" : 0,
     "bearerOnly" : false,
@@ -705,7 +712,8 @@
     "attributes" : {
       "client.secret.creation.time" : "1727608156",
       "client.introspection.response.allow.jwt.claim.enabled" : "false",
-      "post.logout.redirect.uris" : "*",
+      "post.logout.redirect.uris" : "${FRONTEND_BASE_URL}/",
+      "pkce.code.challenge.method" : "S256",
       "oauth2.device.authorization.grant.enabled" : "false",
       "use.jwks.url" : "false",
       "backchannel.logout.revoke.offline.tokens" : "false",
@@ -766,7 +774,7 @@
         "jsonType.label" : "String"
       }
     } ],
-    "defaultClientScopes" : [ "web-origins", "acr", "openid", "roles", "profile", "microprofile-jwt", "basic", "audience-client-meta-api", "email" ],
+    "defaultClientScopes" : [ "web-origins", "acr", "openid", "roles", "profile", "microprofile-jwt", "basic", "audience-client-meta-api", "flnet-platform-api-audience", "email" ],
     "optionalClientScopes" : [ "address", "phone", "offline_access" ]
   }, {
     "clientId": "fl-net-clients",
@@ -812,6 +820,7 @@
     "fullScopeAllowed": true,
     "nodeReRegistrationTimeout": -1,
     "defaultClientScopes": [
+      "flnet-platform-api-audience",
       "web-origins",
       "acr",
       "openid",
@@ -926,44 +935,6 @@
     "defaultClientScopes" : [ "web-origins", "acr", "openid", "roles", "profile", "microprofile-jwt", "basic", "email" ],
     "optionalClientScopes" : [ "address", "phone", "offline_access" ]
   }, {
-    "id" : "593c47de-10dd-4911-acce-66fe999c780f",
-    "clientId" : "frontend",
-    "name" : "Global Frontend",
-    "description" : "",
-    "rootUrl" : "",
-    "adminUrl" : "",
-    "baseUrl" : "${FRONTEND_BASE_URL}",
-    "surrogateAuthRequired" : false,
-    "enabled" : true,
-    "alwaysDisplayInConsole" : false,
-    "publicClient" : true,
-    "clientAuthenticatorType" : "public",
-    "redirectUris" : [ "${FRONTEND_BASE_URL}", "${FRONTEND_BASE_URL}/*" ],
-    "webOrigins" : [ "+" ],
-    "notBefore" : 0,
-    "bearerOnly" : false,
-    "consentRequired" : false,
-    "standardFlowEnabled" : true,
-    "implicitFlowEnabled" : false,
-    "directAccessGrantsEnabled" : true,
-    "serviceAccountsEnabled" : false,
-    "frontchannelLogout" : true,
-    "protocol" : "openid-connect",
-    "attributes" : {
-      "pkce.code.challenge.method": "S256",
-      "backchannel.logout.session.required" : "true",
-      "backchannel.logout.revoke.offline.tokens" : "false",
-      "oidc.ciba.grant.enabled" : "false",
-      "oauth2.device.authorization.grant.enabled" : "false",
-      "display.on.consent.screen" : "false",
-      "post.logout.redirect.uris" : "+"
-    },
-    "authenticationFlowBindingOverrides" : { },
-    "fullScopeAllowed" : true,
-    "nodeReRegistrationTimeout" : -1,
-    "defaultClientScopes" : [ "web-origins", "acr", "roles", "profile", "basic", "audience-client-meta-api", "email" ],
-    "optionalClientScopes" : [ "address", "phone", "offline_access", "microprofile-jwt" ]
-  }, {
     "id" : "ac2dad4f-d966-4228-aaf7-86be71167106",
     "clientId" : "realm-management",
     "name" : "${client_realm-management}",
@@ -1040,6 +1011,41 @@
     "optionalClientScopes" : [ "address", "phone", "offline_access", "microprofile-jwt" ]
   } ],
   "clientScopes" : [ {
+    "name" : "flnet-platform-api-audience",
+    "description" : "Puts the global learning API and the data modeler into the aud claim; both only accept tokens with their own client id",
+    "protocol" : "openid-connect",
+    "attributes" : {
+      "include.in.token.scope" : "false",
+      "display.on.consent.screen" : "false"
+    },
+    "protocolMappers" : [ {
+      "name" : "audience-database-api",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-audience-mapper",
+      "consentRequired" : false,
+      "config" : {
+        "included.client.audience" : "database-api",
+        "id.token.claim" : "false",
+        "lightweight.claim" : "false",
+        "introspection.token.claim" : "true",
+        "access.token.claim" : "true",
+        "userinfo.token.claim" : "false"
+      }
+    }, {
+      "name" : "audience-datamodeler-api",
+      "protocol" : "openid-connect",
+      "protocolMapper" : "oidc-audience-mapper",
+      "consentRequired" : false,
+      "config" : {
+        "included.client.audience" : "datamodeler-api",
+        "id.token.claim" : "false",
+        "lightweight.claim" : "false",
+        "introspection.token.claim" : "true",
+        "access.token.claim" : "true",
+        "userinfo.token.claim" : "false"
+      }
+    } ]
+  }, {
     "id" : "dc6f9ce0-ad69-455f-9584-6a87abfff554",
     "name" : "web-origins",
     "description" : "OpenID Connect scope for add allowed web origins to the access token",

@@ -2,6 +2,7 @@ package bio.cosy.flnet.cli.deploy.bo;
 
 import bio.cosy.flnet.cli.base.deployment.BaseFLNetDeployableInstance;
 import bio.cosy.flnet.cli.base.deployment.DeploymentKind;
+import bio.cosy.flnet.cli.base.deployment.FLNetPlatformDeployment;
 import bio.cosy.flnet.cli.config.FLNetCliConfig;
 import bio.cosy.flnet.cli.helper.CliException;
 import bio.cosy.flnet.cli.helper.FilePermissionHelper;
@@ -31,6 +32,11 @@ public class ComposeBO {
                     : " Fix the path in .env or provide the certificate.";
             throw new CliException("SSL is enabled but " + missing.stream().map(Path::toString).collect(Collectors.joining(", "))
                     + " does not exist." + hint, CliException.ENVIRONMENT);
+        }
+        if (instance instanceof FLNetPlatformDeployment platform && !platform.getMissingSapbertFiles().isEmpty()) {
+            throw new CliException("SapBERT is enabled but " + platform.getMissingSapbertFiles().stream().map(Path::toString)
+                    .collect(Collectors.joining(", ")) + " does not exist. Provide the files, or run 'flnet platform init --no-sapbert'.",
+                    CliException.ENVIRONMENT);
         }
         if (pull) {
             int code = compose(instance, "pull");

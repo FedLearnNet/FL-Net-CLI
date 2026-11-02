@@ -34,6 +34,7 @@ class ValidationTest {
 
         List<String> problems = client.problems(validator);
         assertEquals(List.of(
+                "A platform username and password are required.",
                 "Automatic access in the default permission requires allowing automatic permissions for that resource.",
                 "Invalid instance name. Use 1-32 lowercase letters, digits and dashes, starting and ending with a letter or digit (e.g. 'site-a').",
                 "Ports must be between 1 and 65535.",
@@ -43,8 +44,7 @@ class ValidationTest {
                 "The frontend image is required.",
                 "The listen address must be 'localhost' or an IPv4 address.",
                 "The platform address is required.",
-                "The platform relay port must be between 1 and 65535.",
-                "The platform requires authentication, so a platform username and password are required."), problems);
+                "The platform relay port must be between 1 and 65535."), problems);
 
         CliException error = assertThrows(CliException.class, () -> client.requireValid(validator));
         assertEquals(CliException.USAGE, error.exitCode());

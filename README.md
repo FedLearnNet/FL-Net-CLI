@@ -9,6 +9,7 @@ flnet platform init | list | info | up | down | pull | stop | restart | clean | 
 flnet list                                                 all clients and platforms on this machine
 flnet tool     create <name>                               start a new tool project
 flnet doctor                                               check docker, docker compose, openssl
+flnet update [--pre]                                       check for a newer flnet and show how to install it
 flnet generate-completion                                  bash/zsh completion script
 ```
 
@@ -22,8 +23,12 @@ curl -fsSL https://raw.githubusercontent.com/FedLearnNet/FL-Net-CLI/main/install
 
 The script downloads the native binary for your platform from the GitHub release, verifies its
 SHA-256 checksum and installs it to `~/.local/bin` (`/usr/local/bin` as root). Options:
-`FLNET_VERSION=v1.0.0`, `FLNET_INSTALL_DIR=/opt/bin`, `FLNET_DOWNLOAD_URL=https://mirror.internal/flnet`
-(internal mirror holding the release assets and `SHA256SUMS`).
+`FLNET_VERSION=1.0.0`, `FLNET_INSTALL_DIR=/opt/bin`, `FLNET_DOWNLOAD_URL=https://mirror.internal/flnet`
+(internal mirror holding the release assets and `SHA256SUMS`). `FLNET_VERSION=staging` installs the newest
+build of `develop`.
+
+`flnet update` tells you when a newer release exists and prints the install command for it
+(release candidates `X.Y.Z.rcN` only with `--pre`, or when you run one).
 
 Other platforms (e.g. Windows): download `flnet.jar` from the release page and run `java -jar flnet.jar` (Java 25+).
 
@@ -52,6 +57,16 @@ flnet platform init --domain https://fl.example.org \
     --ssl-key /etc/letsencrypt/live/fl.example.org/privkey.pem
 flnet platform up
 ```
+
+SapBERT embeddings (semantic ontology search in the data modeler) are optional and off by default. The model is not
+shipped with FL-Net. To use it, provide a folder containing `sapbert.onnx` and `tokenizer.json`; it is mounted into
+the datamodeler as is:
+
+```bash
+flnet platform init --sapbert --sapbert-dir /opt/sapbert
+```
+
+`--no-sapbert` turns it off again. Without it only the list search is available.
 
 ## Several instances on one machine
 

@@ -4,7 +4,7 @@
 #   curl -fsSL https://raw.githubusercontent.com/FedLearnNet/FL-Net-CLI/main/install.sh | sh
 #
 # Environment variables:
-#   FLNET_VERSION      release to install, e.g. v1.0.0 (default: latest)
+#   FLNET_VERSION      release to install, e.g. 1.0.0 (default: latest)
 #   FLNET_INSTALL_DIR  target directory (default: ~/.local/bin, /usr/local/bin as root)
 #   FLNET_REPO         GitHub repository (default: FedLearnNet/FL-Net-CLI)
 #   FLNET_DOWNLOAD_URL base URL of an internal mirror holding the release assets (overrides the above)
