@@ -72,7 +72,7 @@ public class ClientInitCommand extends BaseInitCommand {
         if (client.getSslSource() == SslSource.SELF_SIGNED && !Files.exists(client.getSelfSignedCertificate())) {
             ConsoleHelper.warn("You chose self-signed SSL, but the certificate " + client.getSelfSignedCertificate()
                     + " does not exist yet. The client will NOT start until you create it with: flnet client certs"
-                    + clientBO.nameFlag(client));
+                    + clientBO.nameFlag(client) + "\nSee " + clientBO.guideUrl(FLNetClientDeploymentBO.SELF_SIGNED_ANCHOR));
         }
     }
 }

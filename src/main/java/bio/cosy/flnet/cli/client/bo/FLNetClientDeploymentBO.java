@@ -113,6 +113,13 @@ public class FLNetClientDeploymentBO extends BaseFLNetDeploymentBO<FLNetClientDe
     }
 
 
+    public static final String SELF_SIGNED_ANCHOR = "self-signed-certificates";
+
+    public String guideUrl(String anchor) {
+        String url = config.documentationUrl() + "/docs/deployment/deploy-client";
+        return anchor == null ? url : url + "#" + anchor;
+    }
+
     public List<String> nextSteps(FLNetClientDeployment client, ClientInitMode mode) {
         String flag = nameFlag(client);
         List<String> lines = new ArrayList<>();
@@ -120,7 +127,8 @@ public class FLNetClientDeploymentBO extends BaseFLNetDeploymentBO<FLNetClientDe
             lines.add("Create the self-signed certificate first:");
             lines.add("  flnet client certs" + flag);
             lines.add("Also comment out the HSTS header in nginx_conf_HTTPS.conf (or disable HSTS for the domain in your browser),");
-            lines.add("otherwise browsers refuse self-signed certificates.");
+            lines.add("otherwise browsers refuse self-signed certificates. Details:");
+            lines.add(guideUrl(SELF_SIGNED_ANCHOR));
         }
         WebAddress domain = client.getDomain();
         if (domain != null && domain.isHttps() && domain.isIpAddress()) {
@@ -142,7 +150,7 @@ public class FLNetClientDeploymentBO extends BaseFLNetDeploymentBO<FLNetClientDe
                 lines.add("Start the client:");
                 lines.add("  flnet client up" + flag);
                 lines.add("Then open " + client.getDeployedOnAddress() + " and follow the first-login steps:");
-                lines.add(config.documentationUrl() + "/docs/deployment/deploy-client");
+                lines.add(guideUrl(null));
                 lines.add("Keycloak admin credentials: " + client.getSecretsDirectory().resolve(FLNetClientDeployment.KEYCLOAK_SECRETS));
             }
         }
