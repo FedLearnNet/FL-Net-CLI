@@ -207,7 +207,7 @@ public class ClientQuestionnaire extends BaseQuestionnaire {
         if (source != SslSource.PROVIDED) {
             if (source == SslSource.SELF_SIGNED) {
                 ConsoleHelper.info("The self-signed certificate must exist before the client starts. You can create it at the end of this "
-                        + "setup or later with 'flnet client certs'. See " + clientBO.guideUrl(FLNetClientDeploymentBO.SELF_SIGNED_ANCHOR));
+                        + "setup or later. See " + clientBO.guideUrl(FLNetClientDeploymentBO.SELF_SIGNED_ANCHOR));
             }
             client.useSsl(source, null, null);
             return;
