@@ -1,6 +1,7 @@
 package bio.cosy.flnet.cli.client.command;
 
 import bio.cosy.flnet.cli.base.deployment.FLNetClientDeployment;
+import bio.cosy.flnet.cli.base.deployment.SslSource;
 import bio.cosy.flnet.cli.client.ClientInitMode;
 import bio.cosy.flnet.cli.client.bo.ClientCertificateBO;
 import bio.cosy.flnet.cli.client.bo.FLNetClientDeploymentBO;
@@ -12,6 +13,7 @@ import jakarta.inject.Inject;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.Mixin;
 
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.util.List;
 
@@ -62,6 +64,15 @@ public class ClientInitCommand extends BaseInitCommand {
             ConsoleHelper.info("(Saved to " + saved + ")");
         }
         stagingWarning(client);
+        missingCertificateWarning(client);
         return 0;
+    }
+
+    private void missingCertificateWarning(FLNetClientDeployment client) {
+        if (client.getSslSource() == SslSource.SELF_SIGNED && !Files.exists(client.getSelfSignedCertificate())) {
+            ConsoleHelper.warn("You chose self-signed SSL, but the certificate " + client.getSelfSignedCertificate()
+                    + " does not exist yet. The client will NOT start until you create it with: flnet client certs"
+                    + clientBO.nameFlag(client) + "\nSee " + clientBO.guideUrl(FLNetClientDeploymentBO.SELF_SIGNED_ANCHOR));
+        }
     }
 }

@@ -182,7 +182,7 @@ public class ClientQuestionnaire extends BaseQuestionnaire {
         client.setListen(prompter.text("--listen", given.getListen(), "Address to listen on (localhost or IPv4)", client.getListen(),
                 value -> value.equals("localhost") || value.equals("127.0.0.1") ? null : NetworkHelper.validateIpv4(value)));
 
-        ConsoleHelper.info("Optionally set the domain of the client: it enables strict CORS/host checks and SSL termination.");
+        ConsoleHelper.info("Optionally set the domain of the client: it enables strict CORS/host checks and SSL termination. If you use self signed certificates, please set https://<your-ip>:<port> as domain and use this as the common name and subject alternative name in the certificate.");
         String domain = prompter.text("--domain", given.getDomain(), "Domain incl. protocol (empty or 'none' for no domain)",
                 client.getDomain() == null ? "" : client.getDomain().toString(),
                 value -> isNone(value) ? null : WebAddress.validate(value));
@@ -205,6 +205,10 @@ public class ClientQuestionnaire extends BaseQuestionnaire {
         SslSource source = prompter.choice("--ssl", given.getSsl(), "SSL termination in the client: none (e.g. your reverse proxy does it), "
                 + "provided certificate files, or self-signed", List.of(SslSource.values()), SslSource::cliName, client.getSslSource());
         if (source != SslSource.PROVIDED) {
+            if (source == SslSource.SELF_SIGNED) {
+                ConsoleHelper.info("The self-signed certificate must exist before the client starts. You can create it at the end of this "
+                        + "setup or later. See " + clientBO.guideUrl(FLNetClientDeploymentBO.SELF_SIGNED_ANCHOR));
+            }
             client.useSsl(source, null, null);
             return;
         }
