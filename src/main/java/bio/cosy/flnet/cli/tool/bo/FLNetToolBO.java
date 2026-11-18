@@ -55,23 +55,41 @@ public class FLNetToolBO {
         checkTarget(tool.getDirectory(), force);
         render(tool, "README.md", "README.md");
         render(tool, "main.py", "main.py");
-        render(tool, tool.getToolType().appTemplate(), "app.py");
-        if (tool.hasConfigModule()) {
-            render(tool, "config.py", "config.py");
-        }
-        if (tool.isFederated()) {
-            render(tool, "aggregator.py", "aggregator.py");
-        }
         render(tool, "app.yml", "app.yml");
         render(tool, "env", ".env");
         render(tool, "requirements.txt", "requirements.txt");
         render(tool, "Dockerfile", "Dockerfile");
         render(tool, "gitignore", ".gitignore");
-        if (tool.hasInputs()) {
-            render(tool, "input.csv", "data/input.csv");
+        if (tool.isFlower()) {
+            generateFlowerApp(tool);
         } else {
-            write(tool.resolve("data/.gitkeep"), "");
+            render(tool, tool.getToolType().appTemplate(), "app.py");
+            if (tool.hasConfigModule()) {
+                render(tool, "config.py", "config.py");
+            }
+            if (tool.isFederated()) {
+                render(tool, "aggregator.py", "aggregator.py");
+            }
+            if (tool.hasInputs()) {
+                render(tool, "input.csv", "data/input.csv");
+            } else {
+                write(tool.resolve("data/.gitkeep"), "");
+            }
         }
+    }
+
+    /**
+     * A Flower-based tool has no app.py/aggregator.py at all - instead, a Flower App bundle (ClientApp/ServerApp,
+     * its own pyproject.toml) lives in a subfolder for the tool developer to fill in; main.py (see the "main.py"
+     * template) just registers it with the engine, which starts/supervises Flower's own processes.
+     */
+    private void generateFlowerApp(FLNetTool tool) {
+        String pkg = tool.getPythonPackage();
+        render(tool, "flower/pyproject.toml", "flower_app/pyproject.toml");
+        write(tool.resolve("flower_app/" + pkg + "/__init__.py"), "");
+        render(tool, "flower/server_app.py", "flower_app/" + pkg + "/server_app.py");
+        render(tool, "flower/client_app.py", "flower_app/" + pkg + "/client_app.py");
+        render(tool, "flower/task.py", "flower_app/" + pkg + "/task.py");
     }
 
     private static void checkTarget(Path target, boolean force) {

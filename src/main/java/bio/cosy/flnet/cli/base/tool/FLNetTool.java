@@ -53,6 +53,19 @@ public class FLNetTool extends BaseFLNet {
         return !getInputs().isEmpty();
     }
 
+    public boolean isFlower() {
+        return getCommunicationEngine() == CommunicationEngine.FLOWER;
+    }
+
+    public String getCommunicationEngineCliName() {
+        return getCommunicationEngine().cliName();
+    }
+
+    /** The Flower App bundle's Python package name, derived from the slug (hyphens aren't valid in package names). */
+    public String getPythonPackage() {
+        return getSlug().replace('-', '_');
+    }
+
 
     public static String className(String name) {
         StringBuilder result = new StringBuilder();

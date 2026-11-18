@@ -1,4 +1,12 @@
 # FL-Net tool SDK, imported as `pyfedappwrap`
 FL-Net-Python-Tool-API~={tool.sdkVersion}
+{#if tool.flower}
+# Flower (flwr.ai) federated learning framework - also provides the flower-superlink/
+# flower-supernode binaries pyfedappwrap starts; keep in sync with flower_app/pyproject.toml.
+flwr>=1.43.0
+# Dependencies of the Flower App bundle in flower_app/ (baked into the image, not installed
+# at runtime - see flower_app/pyproject.toml's own `dependencies`).
+numpy>=2.0.2
+{/if}
 
 # Add the dependencies of your tool below

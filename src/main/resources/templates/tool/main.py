@@ -1,6 +1,18 @@
 from pyfedappwrap.engine.config.system_config import system_settings
 from pyfedappwrap.engine.runtime import FedDBEngine
 
+{#if tool.flower}
+from pyfedappwrap.learning.federated.flower_app import FlowerApp
+
+print(system_settings)
+
+engine = FedDBEngine()
+
+# The Flower App bundle (ClientApp/ServerApp, its own pyproject.toml) lives in flower_app/ -
+# fill in flower_app/{tool.pythonPackage}/server_app.py and client_app.py. The engine starts
+# and supervises Flower's own SuperLink/SuperNode process for you; you never call `flwr` yourself.
+engine.register_flower(FlowerApp(app_dir="flower_app"))
+{#else}
 {#if tool.federated}
 from aggregator import MeanAggregator
 {/if}
@@ -18,6 +30,7 @@ engine.register_federated({tool.className}())
 engine.register_transformer({tool.className}())
 {#else}
 engine.register({tool.className}())
+{/if}
 {/if}
 
 if __name__ == "__main__":

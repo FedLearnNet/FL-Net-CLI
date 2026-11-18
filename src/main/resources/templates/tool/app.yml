@@ -34,6 +34,7 @@ config:
 {/for}
 {/if}
 info:
+  communicationEngine: {tool.communicationEngine}
   longDescription: null
   name: {tool.nameYaml}
   shortDescription: {tool.descriptionYaml}

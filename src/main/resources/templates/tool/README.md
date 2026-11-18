@@ -2,7 +2,7 @@
 
 {tool.description}
 
-A FL-Net tool of type `{tool.type}`{#if tool.federated} with federated learning support{/if}, built on the
+A FL-Net tool of type `{tool.type}`{#if tool.federated} with federated learning support ({tool.communicationEngineCliName}){/if}, built on the
 [FL-Net Python Tool API](https://pypi.org/project/FL-Net-Python-Tool-API/) (`pyfedappwrap`).
 Generated with `flnet tool create`.
 
@@ -23,6 +23,21 @@ Sample input data for local runs lives in `data/`.
 
 ## Project structure
 
+{#if tool.flower}
+```
+├─ flower_app/                       # Flower App bundle - a normal Flower project
+│  ├─ pyproject.toml                 # Flower App config: [tool.flwr.app.components], run config
+│  └─ {tool.pythonPackage}/
+│     ├─ server_app.py               # ServerApp: aggregates the clients' local results
+│     ├─ client_app.py               # ClientApp: trains/evaluates on this site's own data
+│     └─ task.py                     # Shared helpers (model init, where to save the result)
+├─ main.py           # Registers flower_app/ with the engine and starts it
+├─ app.yml           # Tool metadata and configuration for the platform
+├─ requirements.txt  # Python dependencies (flwr + flower_app/'s own deps, baked into the image)
+├─ .env              # Local settings (APP_ID, platform URLs), not committed
+└─ Dockerfile        # Container image used by the platform
+```
+{#else}
 ```
 ├─ app.py            # Your tool: {tool.className}
 {#if tool.federated}
@@ -38,7 +53,31 @@ Sample input data for local runs lives in `data/`.
 ├─ .env              # Local settings (APP_ID, platform URLs), not committed
 └─ Dockerfile        # Container image used by the platform
 ```
+{/if}
 
+{#if tool.flower}
+## Core concepts
+
+This is a normal [Flower](https://flower.ai) app - FL-Net just starts and supervises it for you:
+
+- **`server_app.py`**: your `ServerApp`, decides what happens each round (aggregation strategy,
+  number of rounds via `context.run_config["num-server-rounds"]`) and saves the final model.
+- **`client_app.py`**: your `ClientApp`, trains/evaluates on this site's own local data - only
+  what it returns (e.g. updated weights, metrics) ever leaves the site, never the raw data.
+- **`task.py`**: shared helpers - `get_initial_model()` and `model_dir()` (where `server_app.py`
+  should save the result, so FL-Net's own model storage can pick it up).
+- `flower_app/pyproject.toml`'s `[tool.flwr.app.config]` holds run config, the same way
+  `app.yml`'s `config.hyperparams` does for an FL-Net tool - add your own tool's settings there.
+
+See [Flower's own docs](https://flower.ai/docs/framework/) for how to write real `ServerApp`/
+`ClientApp` logic (strategies, `Message`/`Context`/`ArrayRecord`, etc.) - FL-Net only handles
+starting the SuperLink/SuperNode and reporting status back to the platform.
+
+## Logging and metrics
+
+Use Flower's own logging; FL-Net's `send_metric`/`self.logger` (`BaseApp`'s) don't apply here,
+since the ServerApp/ClientApp aren't `BaseApp` subclasses.
+{#else}
 ## Core concepts
 
 The framework loads and validates hyperparameters into `self.config`, parses the input into
@@ -66,6 +105,7 @@ with `self.communicator.send_data_to_aggregator(...)`. The aggregator registered
 all results in `MeanAggregator.aggregate` and returns the global result, which every client receives
 with `self.communicator.await_data_from_aggregator(...)`. Only these intermediate results leave a site,
 never the raw data.
+{/if}
 {/if}
 {#if tool.type == "DATA_TRANSFORMATION"}
 

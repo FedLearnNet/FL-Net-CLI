@@ -1,5 +1,6 @@
 package bio.cosy.flnet.cli.base;
 
+import bio.cosy.flnet.cli.base.tool.CommunicationEngine;
 import bio.cosy.flnet.cli.base.tool.FLNetTool;
 import bio.cosy.flnet.cli.base.tool.FLNetToolField;
 import bio.cosy.flnet.cli.base.tool.ToolType;
@@ -117,5 +118,54 @@ class FLNetToolTest {
         tool.setToolType(ToolType.EXPORT);
         tool.setAppId(" ");
         assertEquals(2, tool.problems(VALIDATOR).size(), tool.problems(VALIDATOR).toString());
+    }
+
+    @Test
+    void communicationEngineCliNamesAndParsingAreConsistent() {
+        assertEquals("fl-net", CommunicationEngine.FL_NET.cliName());
+        assertEquals("flower", CommunicationEngine.FLOWER.cliName());
+        assertEquals(CommunicationEngine.FLOWER, CommunicationEngine.fromCli("flower"));
+        assertEquals(CommunicationEngine.FL_NET, CommunicationEngine.fromCli("FL_NET"));
+        assertThrows(IllegalArgumentException.class, () -> CommunicationEngine.fromCli("nope"));
+    }
+
+    @Test
+    void aFlowerToolHasNoAppYmlLevelConfigAndDerivesItsPythonPackageFromTheSlug() {
+        FLNetTool tool = new FLNetTool();
+        tool.setName("Fed Flower v2");
+        tool.setToolType(ToolType.ANALYSIS);
+        tool.setFederated(true);
+
+        assertFalse(tool.isFlower());
+        tool.setCommunicationEngine(CommunicationEngine.FLOWER);
+        assertTrue(tool.isFlower());
+        assertEquals("fed-flower-v2", tool.getSlug());
+        assertEquals("fed_flower_v2", tool.getPythonPackage());
+        assertEquals(List.of(), tool.getHyperparams());
+        assertEquals(List.of(), tool.getInputs());
+        assertEquals(List.of(), tool.getOutputs());
+        assertFalse(tool.hasInputs());
+    }
+
+    @Test
+    void communicationEngineFlowerRequiresFederated() {
+        FLNetTool tool = new FLNetTool();
+        tool.setName("Fed Flower");
+        tool.setDescription("x");
+        tool.setDirectory(Path.of("fed-flower"));
+        tool.setAppId("1");
+        tool.setSdkVersion("0.7.12");
+        tool.setBaseImage("base");
+        tool.setPlatformAddress(WebAddress.parse("https://fl.example.org:8443"));
+        tool.setKeycloakRealmPath("/auth/realms/FLNet-Platform");
+        tool.setToolType(ToolType.ANALYSIS);
+        tool.setCommunicationEngine(CommunicationEngine.FLOWER);
+        tool.setFederated(false);
+
+        assertTrue(tool.problems(VALIDATOR).contains("--communication-engine flower requires --federated."),
+                tool.problems(VALIDATOR).toString());
+
+        tool.setFederated(true);
+        assertTrue(tool.problems(VALIDATOR).isEmpty(), tool.problems(VALIDATOR).toString());
     }
 }

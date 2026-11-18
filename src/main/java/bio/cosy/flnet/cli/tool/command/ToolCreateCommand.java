@@ -1,5 +1,6 @@
 package bio.cosy.flnet.cli.tool.command;
 
+import bio.cosy.flnet.cli.base.tool.CommunicationEngine;
 import bio.cosy.flnet.cli.base.tool.FLNetTool;
 import bio.cosy.flnet.cli.base.tool.ToolType;
 import bio.cosy.flnet.cli.helper.CliException;
@@ -28,7 +29,8 @@ import java.util.concurrent.Callable;
                 "Examples:",
                 "  flnet tool create \"Random Forest\"",
                 "  flnet tool create my-cleaner --type pre-processing --no-input",
-                "  flnet tool create fed-mean --type analysis --federated --app-id 42"
+                "  flnet tool create fed-mean --type analysis --federated --app-id 42",
+                "  flnet tool create fed-flower --type analysis --federated --communication-engine flower"
         })
 public class ToolCreateCommand implements Callable<Integer> {
 
@@ -40,6 +42,10 @@ public class ToolCreateCommand implements Callable<Integer> {
 
     @Option(names = "--federated", negatable = true, description = "Generate a federated tool (client app + aggregator). Analysis tools only.")
     Boolean federated;
+
+    @Option(names = {"-e", "--communication-engine"}, paramLabel = "<engine>",
+            description = "Federated communication engine: fl-net or flower. Requires --federated. Default: fl-net.")
+    String communicationEngine;
 
     @Option(names = {"-o", "--output"}, paramLabel = "<dir>", description = "Target directory. Default: ./<slug>.")
     Path output;
@@ -114,6 +120,17 @@ public class ToolCreateCommand implements Callable<Integer> {
         }
         tool.setFederated(tool.getToolType().supportsFederated()
                 && prompter.confirm("--federated", federated, "Federated learning (client app + aggregator)?", false));
+        if (tool.isFederated()) {
+            try {
+                tool.setCommunicationEngine(communicationEngine != null ? CommunicationEngine.fromCli(communicationEngine)
+                        : prompter.choice("--communication-engine", null, "Communication engine",
+                                List.of(CommunicationEngine.values()), CommunicationEngine::cliName, CommunicationEngine.FL_NET));
+            } catch (IllegalArgumentException e) {
+                throw CliException.usage(e.getMessage());
+            }
+        } else if (communicationEngine != null) {
+            throw CliException.usage("--communication-engine requires --federated.");
+        }
         tool.setDescription(prompter.text("--description", description, "Short description",
                 "An FL-Net " + tool.getToolType().cliName() + " tool", Validator.ANY));
         tool.setSourceUrl(sourceUrl);
@@ -138,7 +155,8 @@ public class ToolCreateCommand implements Callable<Integer> {
 
         toolBO.generate(tool, force);
 
-        ConsoleHelper.success("Created " + tool.getToolType().cliName() + (tool.isFederated() ? " (federated)" : "") + " tool '"
+        ConsoleHelper.success("Created " + tool.getToolType().cliName()
+                + (tool.isFederated() ? " (federated, " + tool.getCommunicationEngine().cliName() + ")" : "") + " tool '"
                 + tool.getName() + "' in " + tool.getDirectory());
         ConsoleHelper.info("Next steps:");
         Path relative = Path.of("").toAbsolutePath().relativize(tool.getDirectory());
