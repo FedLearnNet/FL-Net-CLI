@@ -153,6 +153,8 @@ class FLNetDeploymentModelTest {
         platform.setNginxPort(8250);
         platform.setRelayPort(9150);
         platform.setMinClients(3);
+        platform.setMinQueryResults(3);
+        platform.setQueryReleaseTimeout(300);
         platform.setSslEnabled(true);
         platform.setSslCertificate(Path.of("/etc/ssl/fullchain.pem"));
         platform.setSslPrivateKey(Path.of("/etc/ssl/privkey.pem"));
@@ -363,6 +365,10 @@ class FLNetDeploymentModelTest {
         client.setPort(8250);
         client.setQueryRetryTime(3);
         client.setQuerySampleThreshold(100);
+        client.setQueryMaxConditions(30);
+        client.setQueryMaxTemporalRelations(5);
+        client.setQueryMaxDepth(6);
+        client.setTreLearning(true);
         client.generateSecrets(64, 16);
         return client;
     }
@@ -380,6 +386,8 @@ class FLNetDeploymentModelTest {
         platform.setNginxPort(8250);
         platform.setRelayPort(9150);
         platform.setMinClients(3);
+        platform.setMinQueryResults(3);
+        platform.setQueryReleaseTimeout(300);
         platform.setSslEnabled(true);
         platform.setSslCertificate(Path.of("/etc/ssl/fullchain.pem"));
         platform.setSslPrivateKey(Path.of("/etc/ssl/privkey.pem"));

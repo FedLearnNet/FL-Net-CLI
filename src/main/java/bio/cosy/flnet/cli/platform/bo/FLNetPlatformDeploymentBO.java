@@ -39,6 +39,8 @@ public class FLNetPlatformDeploymentBO extends BaseFLNetDeploymentBO<FLNetPlatfo
         platform.setNginxPort(config.platform().port());
         platform.setRelayPort(config.platform().relayPort());
         platform.setMinClients(config.platform().minClients());
+        platform.setMinQueryResults(config.platform().minQueryResults());
+        platform.setQueryReleaseTimeout(config.platform().queryReleaseTimeout());
         platform.setSslEnabled(true);
         return platform;
     }

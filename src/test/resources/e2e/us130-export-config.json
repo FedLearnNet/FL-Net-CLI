@@ -1,0 +1,511 @@
+{
+  "appBased": false,
+  "wideFormat": true,
+  "joinFields": [
+    "PATIENT_ID",
+    "VISIT_ID"
+  ],
+  "duplicatePolicy": "KEEP_FIRST",
+  "features": [
+    {
+      "name": "race",
+      "order": 0,
+      "allowedDataIds": [
+        {
+          "globalOntologyId": "db42a70e-f74c-58f2-9ceb-6d42b45bb19c",
+          "globalDataTypeId": "6fed248f-72ab-5fbe-a74a-e4095dcb90a5"
+        }
+      ]
+    },
+    {
+      "name": "gender",
+      "order": 1,
+      "allowedDataIds": [
+        {
+          "globalOntologyId": "a1cbbfb8-a214-55c7-beb5-2c64fb1e1db9",
+          "globalDataTypeId": "344eeb12-1f47-532f-9e0a-79365f9a417e"
+        }
+      ]
+    },
+    {
+      "name": "age",
+      "order": 2,
+      "allowedDataIds": [
+        {
+          "globalOntologyId": "d9f5f4a3-2a1e-5a4a-a46b-148722b9a6b4",
+          "globalDataTypeId": "a7ecc6e1-e72d-53cc-83fa-31265b4b682a"
+        }
+      ]
+    },
+    {
+      "name": "weight",
+      "order": 3,
+      "allowedDataIds": [
+        {
+          "globalOntologyId": "78566244-4e11-5e6c-b94a-81796d7ca62c",
+          "globalDataTypeId": "1d2b6437-96f8-5cc7-8ccb-4bd09f6c742b"
+        }
+      ]
+    },
+    {
+      "name": "encounter_identifier",
+      "order": 4,
+      "allowedDataIds": [
+        {
+          "globalOntologyId": "54e7a243-faf6-5caf-ab70-dcab7e0dcd70",
+          "globalDataTypeId": "cc9c46eb-8c52-5130-b8c4-fa789509c86f"
+        }
+      ]
+    },
+    {
+      "name": "patient_number",
+      "order": 5,
+      "allowedDataIds": [
+        {
+          "globalOntologyId": "ea7d704f-6970-5efc-a217-edba014064e1",
+          "globalDataTypeId": "cc9c46eb-8c52-5130-b8c4-fa789509c86f"
+        }
+      ]
+    },
+    {
+      "name": "admission_type",
+      "order": 6,
+      "allowedDataIds": [
+        {
+          "globalOntologyId": "28f63d83-7417-5c7d-b136-1e30a04a3235",
+          "globalDataTypeId": "cc9c46eb-8c52-5130-b8c4-fa789509c86f"
+        }
+      ]
+    },
+    {
+      "name": "discharge_disposition",
+      "order": 7,
+      "allowedDataIds": [
+        {
+          "globalOntologyId": "4403ac30-2999-522f-ab59-56b882d3aaf4",
+          "globalDataTypeId": "cc9c46eb-8c52-5130-b8c4-fa789509c86f"
+        }
+      ]
+    },
+    {
+      "name": "admission_source",
+      "order": 8,
+      "allowedDataIds": [
+        {
+          "globalOntologyId": "a5591e45-4732-5b76-8d9e-2bb10bbda1a7",
+          "globalDataTypeId": "cc9c46eb-8c52-5130-b8c4-fa789509c86f"
+        }
+      ]
+    },
+    {
+      "name": "length_of_stay",
+      "order": 9,
+      "allowedDataIds": [
+        {
+          "globalOntologyId": "b34ccdb9-e160-59bb-9073-cc403778c4e4",
+          "globalDataTypeId": "cc9c46eb-8c52-5130-b8c4-fa789509c86f"
+        }
+      ]
+    },
+    {
+      "name": "payer_code",
+      "order": 10,
+      "allowedDataIds": [
+        {
+          "globalOntologyId": "b11ccbb8-aa08-5ad9-9089-40213321c32a",
+          "globalDataTypeId": "4dfb9a71-0d97-5d50-a40d-d77f1fe665f3"
+        }
+      ]
+    },
+    {
+      "name": "medical_specialty",
+      "order": 11,
+      "allowedDataIds": [
+        {
+          "globalOntologyId": "0b507e70-fa48-5061-9708-fbfd8e5286c1",
+          "globalDataTypeId": "4dfb9a71-0d97-5d50-a40d-d77f1fe665f3"
+        }
+      ]
+    },
+    {
+      "name": "number_of_lab_procedures",
+      "order": 12,
+      "allowedDataIds": [
+        {
+          "globalOntologyId": "694ccff3-c2e7-5008-9e93-3d83e30a11c1",
+          "globalDataTypeId": "cc9c46eb-8c52-5130-b8c4-fa789509c86f"
+        }
+      ]
+    },
+    {
+      "name": "number_of_procedures",
+      "order": 13,
+      "allowedDataIds": [
+        {
+          "globalOntologyId": "ae17cce5-8d1d-5e63-bcb0-b1960b5355a2",
+          "globalDataTypeId": "cc9c46eb-8c52-5130-b8c4-fa789509c86f"
+        }
+      ]
+    },
+    {
+      "name": "number_of_medications",
+      "order": 14,
+      "allowedDataIds": [
+        {
+          "globalOntologyId": "f18a256d-0c87-5a95-a5bb-d363537167c6",
+          "globalDataTypeId": "cc9c46eb-8c52-5130-b8c4-fa789509c86f"
+        }
+      ]
+    },
+    {
+      "name": "number_of_diagnoses",
+      "order": 15,
+      "allowedDataIds": [
+        {
+          "globalOntologyId": "d8d1f718-437c-5b20-a952-f4f4c5622fde",
+          "globalDataTypeId": "cc9c46eb-8c52-5130-b8c4-fa789509c86f"
+        }
+      ]
+    },
+    {
+      "name": "number_of_outpatient_visits",
+      "order": 16,
+      "allowedDataIds": [
+        {
+          "globalOntologyId": "12a7430a-d0bd-57a2-a769-3ffc7e723361",
+          "globalDataTypeId": "cc9c46eb-8c52-5130-b8c4-fa789509c86f"
+        }
+      ]
+    },
+    {
+      "name": "number_of_emergency_visits",
+      "order": 17,
+      "allowedDataIds": [
+        {
+          "globalOntologyId": "0254ccd7-1fb1-5f74-b55c-a1af1198768e",
+          "globalDataTypeId": "cc9c46eb-8c52-5130-b8c4-fa789509c86f"
+        }
+      ]
+    },
+    {
+      "name": "number_of_inpatient_visits",
+      "order": 18,
+      "allowedDataIds": [
+        {
+          "globalOntologyId": "5875fd47-db2d-504c-a7f8-dec4219045c2",
+          "globalDataTypeId": "cc9c46eb-8c52-5130-b8c4-fa789509c86f"
+        }
+      ]
+    },
+    {
+      "name": "primary_diagnosis",
+      "order": 19,
+      "allowedDataIds": [
+        {
+          "globalOntologyId": "1ab53525-785e-56f9-8521-43e4b1ea0428",
+          "globalDataTypeId": "4dfb9a71-0d97-5d50-a40d-d77f1fe665f3"
+        }
+      ]
+    },
+    {
+      "name": "secondary_diagnosis",
+      "order": 20,
+      "allowedDataIds": [
+        {
+          "globalOntologyId": "e5a74c4c-e56f-52c6-beff-fd22999fa56f",
+          "globalDataTypeId": "4dfb9a71-0d97-5d50-a40d-d77f1fe665f3"
+        }
+      ]
+    },
+    {
+      "name": "tertiary_diagnosis",
+      "order": 21,
+      "allowedDataIds": [
+        {
+          "globalOntologyId": "5367f500-fb9e-5c4d-bfeb-890c9a21aed9",
+          "globalDataTypeId": "4dfb9a71-0d97-5d50-a40d-d77f1fe665f3"
+        }
+      ]
+    },
+    {
+      "name": "maximum_glucose_serum",
+      "order": 22,
+      "allowedDataIds": [
+        {
+          "globalOntologyId": "e9786ae4-dcd6-54ac-aed6-5f4767b3ea0b",
+          "globalDataTypeId": "09d5e754-95b7-5641-917f-4bf15c967bb1"
+        }
+      ]
+    },
+    {
+      "name": "hb_a1c",
+      "order": 23,
+      "allowedDataIds": [
+        {
+          "globalOntologyId": "f2e83ba5-88e3-5117-8dc4-e0ecfac5955b",
+          "globalDataTypeId": "c8f07d56-8b2a-5ba1-9b7c-d4ebc08ca273"
+        }
+      ]
+    },
+    {
+      "name": "metformin",
+      "order": 24,
+      "allowedDataIds": [
+        {
+          "globalOntologyId": "c7fc8f51-c5e7-5259-a4e1-16942d787315",
+          "globalDataTypeId": "3926a07d-0d17-58b9-830c-d7daac9a08fb"
+        }
+      ]
+    },
+    {
+      "name": "repaglinide",
+      "order": 25,
+      "allowedDataIds": [
+        {
+          "globalOntologyId": "d5a2fd20-6464-54a6-bb14-31e3a7d8bc79",
+          "globalDataTypeId": "3926a07d-0d17-58b9-830c-d7daac9a08fb"
+        }
+      ]
+    },
+    {
+      "name": "nateglinide",
+      "order": 26,
+      "allowedDataIds": [
+        {
+          "globalOntologyId": "130986d1-ce5e-517e-845b-3f0a045ed401",
+          "globalDataTypeId": "3926a07d-0d17-58b9-830c-d7daac9a08fb"
+        }
+      ]
+    },
+    {
+      "name": "chlorpropamide",
+      "order": 27,
+      "allowedDataIds": [
+        {
+          "globalOntologyId": "086dbd6b-d32c-5660-879f-70d23cd38298",
+          "globalDataTypeId": "3926a07d-0d17-58b9-830c-d7daac9a08fb"
+        }
+      ]
+    },
+    {
+      "name": "glimepiride",
+      "order": 28,
+      "allowedDataIds": [
+        {
+          "globalOntologyId": "7ca7b8bb-5caa-507e-9fea-e557d6a7ff9e",
+          "globalDataTypeId": "3926a07d-0d17-58b9-830c-d7daac9a08fb"
+        }
+      ]
+    },
+    {
+      "name": "acetohexamide",
+      "order": 29,
+      "allowedDataIds": [
+        {
+          "globalOntologyId": "f745f959-865a-55ae-8ab5-5700dbadddac",
+          "globalDataTypeId": "3926a07d-0d17-58b9-830c-d7daac9a08fb"
+        }
+      ]
+    },
+    {
+      "name": "glipizide",
+      "order": 30,
+      "allowedDataIds": [
+        {
+          "globalOntologyId": "24736aba-0b80-55c8-a89d-2be9f4047f4b",
+          "globalDataTypeId": "3926a07d-0d17-58b9-830c-d7daac9a08fb"
+        }
+      ]
+    },
+    {
+      "name": "glyburide",
+      "order": 31,
+      "allowedDataIds": [
+        {
+          "globalOntologyId": "c62746a9-a35e-501b-8026-7a6c4d8e4a05",
+          "globalDataTypeId": "3926a07d-0d17-58b9-830c-d7daac9a08fb"
+        }
+      ]
+    },
+    {
+      "name": "tolbutamide",
+      "order": 32,
+      "allowedDataIds": [
+        {
+          "globalOntologyId": "42df4b61-e845-5b63-99ad-bd00a5b59147",
+          "globalDataTypeId": "3926a07d-0d17-58b9-830c-d7daac9a08fb"
+        }
+      ]
+    },
+    {
+      "name": "pioglitazone",
+      "order": 33,
+      "allowedDataIds": [
+        {
+          "globalOntologyId": "cf801640-4c2b-5816-b00b-293acd146381",
+          "globalDataTypeId": "3926a07d-0d17-58b9-830c-d7daac9a08fb"
+        }
+      ]
+    },
+    {
+      "name": "rosiglitazone",
+      "order": 34,
+      "allowedDataIds": [
+        {
+          "globalOntologyId": "31b64e76-a398-5b76-aff6-cdc1eb4ed244",
+          "globalDataTypeId": "3926a07d-0d17-58b9-830c-d7daac9a08fb"
+        }
+      ]
+    },
+    {
+      "name": "acarbose",
+      "order": 35,
+      "allowedDataIds": [
+        {
+          "globalOntologyId": "93593961-e5c5-507b-8858-62972985d070",
+          "globalDataTypeId": "3926a07d-0d17-58b9-830c-d7daac9a08fb"
+        }
+      ]
+    },
+    {
+      "name": "miglitol",
+      "order": 36,
+      "allowedDataIds": [
+        {
+          "globalOntologyId": "9167c8f7-445b-5b21-9c21-9a04a2909407",
+          "globalDataTypeId": "3926a07d-0d17-58b9-830c-d7daac9a08fb"
+        }
+      ]
+    },
+    {
+      "name": "troglitazone",
+      "order": 37,
+      "allowedDataIds": [
+        {
+          "globalOntologyId": "9b1e1cdd-ac21-597f-8701-aafbde9c81b9",
+          "globalDataTypeId": "3926a07d-0d17-58b9-830c-d7daac9a08fb"
+        }
+      ]
+    },
+    {
+      "name": "tolazamide",
+      "order": 38,
+      "allowedDataIds": [
+        {
+          "globalOntologyId": "9f7be856-929f-5f36-a6a7-e729545cbe05",
+          "globalDataTypeId": "3926a07d-0d17-58b9-830c-d7daac9a08fb"
+        }
+      ]
+    },
+    {
+      "name": "examide",
+      "order": 39,
+      "allowedDataIds": [
+        {
+          "globalOntologyId": "c4b4b8e9-6fa8-5f59-902e-c2be8db18d71",
+          "globalDataTypeId": "3926a07d-0d17-58b9-830c-d7daac9a08fb"
+        }
+      ]
+    },
+    {
+      "name": "citoglipton",
+      "order": 40,
+      "allowedDataIds": [
+        {
+          "globalOntologyId": "8dca7017-7c5d-5a75-8d27-d8bfc1ce34bf",
+          "globalDataTypeId": "3926a07d-0d17-58b9-830c-d7daac9a08fb"
+        }
+      ]
+    },
+    {
+      "name": "insulin",
+      "order": 41,
+      "allowedDataIds": [
+        {
+          "globalOntologyId": "3a5edebc-22d1-526f-a170-1cb583cd7d3c",
+          "globalDataTypeId": "3926a07d-0d17-58b9-830c-d7daac9a08fb"
+        }
+      ]
+    },
+    {
+      "name": "glyburide_metformin",
+      "order": 42,
+      "allowedDataIds": [
+        {
+          "globalOntologyId": "f3d5e744-78df-528c-8dc1-97842698ceab",
+          "globalDataTypeId": "3926a07d-0d17-58b9-830c-d7daac9a08fb"
+        }
+      ]
+    },
+    {
+      "name": "glipizide_metformin",
+      "order": 43,
+      "allowedDataIds": [
+        {
+          "globalOntologyId": "986f9886-346f-5d32-9376-60f5d1501c36",
+          "globalDataTypeId": "3926a07d-0d17-58b9-830c-d7daac9a08fb"
+        }
+      ]
+    },
+    {
+      "name": "glimepiride_pioglitazone",
+      "order": 44,
+      "allowedDataIds": [
+        {
+          "globalOntologyId": "68b95d6e-2563-505a-ba8b-9ab6fde0d891",
+          "globalDataTypeId": "3926a07d-0d17-58b9-830c-d7daac9a08fb"
+        }
+      ]
+    },
+    {
+      "name": "metformin_rosiglitazone",
+      "order": 45,
+      "allowedDataIds": [
+        {
+          "globalOntologyId": "c5098c89-5f91-5f16-8527-b648a82ce163",
+          "globalDataTypeId": "3926a07d-0d17-58b9-830c-d7daac9a08fb"
+        }
+      ]
+    },
+    {
+      "name": "metformin_pioglitazone",
+      "order": 46,
+      "allowedDataIds": [
+        {
+          "globalOntologyId": "ad1a8e67-87a5-576a-a1bd-b319e334a87e",
+          "globalDataTypeId": "3926a07d-0d17-58b9-830c-d7daac9a08fb"
+        }
+      ]
+    },
+    {
+      "name": "medication_change",
+      "order": 47,
+      "allowedDataIds": [
+        {
+          "globalOntologyId": "422890da-ee99-5ffd-a549-d5472694acc4",
+          "globalDataTypeId": "8461356f-58c0-5516-8cc2-5a84e12aa173"
+        }
+      ]
+    },
+    {
+      "name": "diabetes_medication_prescribed",
+      "order": 48,
+      "allowedDataIds": [
+        {
+          "globalOntologyId": "9bb3bc68-b463-5e9a-8787-bcf3587ae355",
+          "globalDataTypeId": "b1207adb-fbcb-55b4-923f-a09bfc8b1db8"
+        }
+      ]
+    },
+    {
+      "name": "hospital_readmission",
+      "order": 49,
+      "allowedDataIds": [
+        {
+          "globalOntologyId": "a72151fd-859b-5b6a-a752-039c0a541e29",
+          "globalDataTypeId": "b58ddb3f-5f6b-5cad-ae1b-842e9ca51859"
+        }
+      ]
+    }
+  ]
+}

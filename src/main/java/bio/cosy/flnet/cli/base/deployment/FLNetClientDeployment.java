@@ -27,6 +27,9 @@ public class FLNetClientDeployment extends BaseFLNetDeployableInstance {
     public static final String LEARNING_SECRETS = "local-learning-secrets.env";
     private static final String NO_CERTIFICATE = "dummyfile";
     private static final String NO_FEDERATION_HOST = "federated-learning.invalid";
+    // TrainingAccess values of the local learning API
+    private static final String TRAINING_ENABLED = "ENABLED";
+    private static final String TRAINING_DISABLED = "DISABLED";
 
     // network
     private String networkKey;
@@ -203,8 +206,14 @@ public class FLNetClientDeployment extends BaseFLNetDeployableInstance {
         put(env, ClientEnv.COHORT_PERMISSION_QUERY_RETRY_TIME, getQueryRetryTime());
         put(env, ClientEnv.COHORT_PERMISSION_IS_ALLOWED_TO_QUERY, isAllowQueries());
         put(env, ClientEnv.COHORT_PERMISSION_QUERY_SAMPLE_THRESHOLD, getQuerySampleThreshold());
+        put(env, ClientEnv.QUERY_MAX_CONDITIONS, getQueryMaxConditions());
+        put(env, ClientEnv.QUERY_MAX_TEMPORAL_RELATIONS, getQueryMaxTemporalRelations());
+        put(env, ClientEnv.QUERY_MAX_DEPTH, getQueryMaxDepth());
         put(env, ClientEnv.COHORT_PERMISSION_GLOBAL_USER_ID, getPermissionUser());
         put(env, ClientEnv.COHORT_PERMISSION_AUTO_TRAINING_ACCESS, getAutoLearning());
+        put(env, ClientEnv.COHORT_PERMISSION_FEDERATED_TRAINING_ACCESS, trainingAccess(isFederatedLearning()));
+        put(env, ClientEnv.COHORT_PERMISSION_TRE_TRAINING_ACCESS, trainingAccess(isTreLearning()));
+        put(env, ClientEnv.COHORT_PERMISSION_TRE_AUTO_TRAINING_ACCESS, getAutoTreLearning());
         put(env, ClientEnv.COHORT_PERMISSION_AUTO_STATISTICS_ACCESS, getAutoStatistics());
         put(env, ClientEnv.COHORT_PERMISSION_AUTO_METRICS_ACCESS, getAutoMetrics());
         put(env, ClientEnv.GLOBAL_KEYCLOAK_URL, getPlatformKeycloakUrl());
@@ -237,8 +246,14 @@ public class FLNetClientDeployment extends BaseFLNetDeployableInstance {
         setQueryRetryTime(intOr(ClientEnv.COHORT_PERMISSION_QUERY_RETRY_TIME.in(env), getQueryRetryTime()));
         setAllowQueries(bool(ClientEnv.COHORT_PERMISSION_IS_ALLOWED_TO_QUERY.in(env), true));
         setQuerySampleThreshold(intOr(ClientEnv.COHORT_PERMISSION_QUERY_SAMPLE_THRESHOLD.in(env), getQuerySampleThreshold()));
+        setQueryMaxConditions(intOr(ClientEnv.QUERY_MAX_CONDITIONS.in(env), getQueryMaxConditions()));
+        setQueryMaxTemporalRelations(intOr(ClientEnv.QUERY_MAX_TEMPORAL_RELATIONS.in(env), getQueryMaxTemporalRelations()));
+        setQueryMaxDepth(intOr(ClientEnv.QUERY_MAX_DEPTH.in(env), getQueryMaxDepth()));
         setPermissionUser(ClientEnv.COHORT_PERMISSION_GLOBAL_USER_ID.in(env, ""));
         setAutoLearning(AutoAccess.parse(ClientEnv.COHORT_PERMISSION_AUTO_TRAINING_ACCESS.in(env), AutoAccess.NONE));
+        setFederatedLearning(!TRAINING_DISABLED.equals(ClientEnv.COHORT_PERMISSION_FEDERATED_TRAINING_ACCESS.in(env)));
+        setTreLearning(TRAINING_ENABLED.equals(ClientEnv.COHORT_PERMISSION_TRE_TRAINING_ACCESS.in(env)));
+        setAutoTreLearning(AutoAccess.parse(ClientEnv.COHORT_PERMISSION_TRE_AUTO_TRAINING_ACCESS.in(env), AutoAccess.NONE));
         setAutoStatistics(AutoAccess.parse(ClientEnv.COHORT_PERMISSION_AUTO_STATISTICS_ACCESS.in(env), AutoAccess.NONE));
         setAutoMetrics(AutoAccess.parse(ClientEnv.COHORT_PERMISSION_AUTO_METRICS_ACCESS.in(env), AutoAccess.NONE));
     }
@@ -253,5 +268,12 @@ public class FLNetClientDeployment extends BaseFLNetDeployableInstance {
 
     public void setListen(String listen) {
         this.listen = "127.0.0.1".equals(listen) ? "localhost" : listen;
+    }
+
+    private static String trainingAccess(boolean enabled) {
+        if (enabled) {
+            return TRAINING_ENABLED;
+        }
+        return TRAINING_DISABLED;
     }
 }

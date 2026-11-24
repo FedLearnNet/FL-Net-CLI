@@ -13,6 +13,8 @@ public enum PlatformEnv implements EnvVariable {
     NGINX_PORT("nginx bind address: 127.0.0.1 = localhost only (behind a reverse proxy), 0.0.0.0 = all interfaces"),
     EXPOSED_RELAY_TCP_PORT("Address and TCP port of the relay that clients connect to for federated learning"),
     MIN_CLIENTS_NEEDED_FOR_LEARNING("Minimum number of clients a federated learning needs (fewer weaken privacy techniques such as SMPC)"),
+    MIN_QUERY_RESULTS("Clients with matches needed before a query shows its count; one TRE client is enough"),
+    QUERY_RELEASE_TIMEOUT("Seconds a query waits for all clients to answer; then the result shows and later answers are rejected"),
     PLATFORM_AGGREGATOR_ENABLED("true = projects may run their FL aggregator on this platform instead of a random client"),
     EMBEDDING_ENABLED("true = the datamodeler creates SapBERT embeddings for semantic ontology search"),
     SAPBERT_DIR("Folder with sapbert.onnx and tokenizer.json mounted into the datamodeler (only used when EMBEDDING_ENABLED=true)");

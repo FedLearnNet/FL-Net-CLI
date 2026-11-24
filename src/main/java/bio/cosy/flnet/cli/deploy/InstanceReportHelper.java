@@ -43,6 +43,8 @@ public final class InstanceReportHelper {
             row("nginx", platform.getBindIp() + ":" + platform.getNginxPort());
             row("Relay", "0.0.0.0:" + platform.getRelayPort());
             row("Min. clients", String.valueOf(platform.getMinClients()));
+            row("Query release", "when all clients answered, at the latest after " + platform.getQueryReleaseTimeout()
+                    + "s; count from " + platform.getMinQueryResults() + " clients with matches");
             row("Platform aggregator", platform.isPlatformAggregatorEnabled() ? "enabled" : "disabled");
             row("SapBERT embedding", platform.isSapbertEnabled() ? String.valueOf(platform.getSapbertDir()) : "disabled");
         }

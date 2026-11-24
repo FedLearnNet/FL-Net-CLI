@@ -16,6 +16,8 @@ fi
 count="${1:-3}"
 first_port="${2:-4601}"
 : "${DATASET_DIR:?set DATASET_DIR to the directory with clinic_001.csv ..., e.g. meta/deployment/example-data/us-130/clinics}"
+: "${PLATFORM_USERNAME:?set PLATFORM_USERNAME and FLNET_PLATFORM_PASSWORD to the platform account of the clinics}"
+: "${FLNET_PLATFORM_PASSWORD:?set FLNET_PLATFORM_PASSWORD to the password of PLATFORM_USERNAME}"
 
 for ((index = 1; index <= count; index++)); do
   id="$(printf '%03d' "$index")"
@@ -34,7 +36,8 @@ for ((index = 1; index <= count; index++)); do
     -e CLINIC_NAME="clinic$index" \
     -e DEPLOYED_ON_ADDRESS="http://localhost:$port" \
     -e FLNET_IMAGE_TAG="${FLNET_IMAGE_TAG:-staging}" \
-    -e FLNET_CLIENT_ARGS="--network custom --platform-url http://host.docker.internal:8080 --no-platform-auth" \
+    -e PLATFORM_USERNAME -e FLNET_PLATFORM_PASSWORD \
+    -e FLNET_CLIENT_ARGS="--network custom --platform-url http://host.docker.internal:8080" \
     "$IMAGE" >/dev/null
   echo "▷ $name: http://localhost:$port (docker logs -f $name)"
 done

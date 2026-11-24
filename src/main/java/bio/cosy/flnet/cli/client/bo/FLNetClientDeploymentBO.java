@@ -50,6 +50,9 @@ public class FLNetClientDeploymentBO extends BaseFLNetDeploymentBO<FLNetClientDe
         client.setPlatformRelayPort(config.client().customRelayPort());
         client.setQueryRetryTime(config.client().permission().queryRetryTime());
         client.setQuerySampleThreshold(config.client().permission().querySampleThreshold());
+        client.setQueryMaxConditions(config.client().query().maxConditions());
+        client.setQueryMaxTemporalRelations(config.client().query().maxTemporalRelations());
+        client.setQueryMaxDepth(config.client().query().maxDepth());
         client.setNetworkKey(config.client().defaultNetwork());
         return client;
     }

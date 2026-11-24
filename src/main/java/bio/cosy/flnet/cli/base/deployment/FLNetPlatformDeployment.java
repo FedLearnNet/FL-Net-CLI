@@ -133,6 +133,8 @@ public class FLNetPlatformDeployment extends BaseFLNetDeployableInstance {
         put(env, PlatformEnv.NGINX_PORT, getBindIp() + ":" + getNginxPort());
         put(env, PlatformEnv.EXPOSED_RELAY_TCP_PORT, "0.0.0.0:" + getRelayPort());
         put(env, PlatformEnv.MIN_CLIENTS_NEEDED_FOR_LEARNING, getMinClients());
+        put(env, PlatformEnv.MIN_QUERY_RESULTS, getMinQueryResults());
+        put(env, PlatformEnv.QUERY_RELEASE_TIMEOUT, getQueryReleaseTimeout());
         putSslEnv(env, null);
         put(env, PlatformEnv.PLATFORM_AGGREGATOR_ENABLED, isPlatformAggregatorEnabled());
         put(env, PlatformEnv.EMBEDDING_ENABLED, isSapbertEnabled());
@@ -155,6 +157,8 @@ public class FLNetPlatformDeployment extends BaseFLNetDeployableInstance {
         setNginxPort(portOf(PlatformEnv.NGINX_PORT.in(env), getNginxPort()));
         setRelayPort(portOf(PlatformEnv.EXPOSED_RELAY_TCP_PORT.in(env), getRelayPort()));
         setMinClients(intOr(PlatformEnv.MIN_CLIENTS_NEEDED_FOR_LEARNING.in(env), getMinClients()));
+        setMinQueryResults(intOr(PlatformEnv.MIN_QUERY_RESULTS.in(env), getMinQueryResults()));
+        setQueryReleaseTimeout(intOr(PlatformEnv.QUERY_RELEASE_TIMEOUT.in(env), getQueryReleaseTimeout()));
         setPlatformAggregatorEnabled(bool(PlatformEnv.PLATFORM_AGGREGATOR_ENABLED.in(env), isPlatformAggregatorEnabled()));
         setSapbertEnabled(bool(PlatformEnv.EMBEDDING_ENABLED.in(env), isSapbertEnabled()));
         String sapbertDir = PlatformEnv.SAPBERT_DIR.in(env);

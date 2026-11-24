@@ -1,0 +1,33 @@
+# Merged over the docker-compose.yml that 'flnet platform init' writes, inside the DinD image only.
+services:
+  global-learning-api:
+    environment:
+      # the inner daemon pulls and builds slower than a host's, e.g. the pipeline image of several GB within the request
+      - QUARKUS_REST_CLIENT_ORCH_DOCKER_SERVICE_READ_TIMEOUT=1800000
+      - QUARKUS_REST_CLIENT_ORCH_DOCKER_SERVICE_CONNECT_TIMEOUT=10000
+      # its address and those of PLATFORM_ALIASES (entrypoint.sh)
+      - QUARKUS_HTTP_CORS_ORIGINS=${PLATFORM_ORIGINS}
+    extra_hosts:
+      - "host.docker.internal:${HOST_DOCKER_INTERNAL_IP:-host-gateway}"
+  # their checks start a JVM or wait on a slow first start: more time on a busy machine
+  datamodeler-db:
+    healthcheck:
+      timeout: 30s
+  keycloak:
+    healthcheck:
+      timeout: 15s
+      start_period: 5m
+  orch-api:
+    environment:
+      # the tool registry is localhost, which BuildKit's own container cannot reach; the daemon builds and pushes,
+      # for its own platform only
+      - PIPELINE_USE_BUILDX=false
+  relay-server:
+    environment:
+      # accepts the self-signed certificate; prod refuses one not signed by a trusted CA
+      - RELAY_MODE=dev
+  controller:
+    environment:
+      # connects test engines' federated test runs to the relay, whose certificate is self-signed
+      - RELAY_MODE=dev
+      - RELAY_TLS_MODE=self-signed
