@@ -66,8 +66,19 @@ public class ClientConfig extends BaseDeploymentConfig {
     @Option(names = "--auto-metrics", paramLabel = "<all|none>", description = "Default permission: automatic METRICS access.")
     private String autoMetrics;
 
-    @Option(names = "--auto-learning", paramLabel = "<all|certified|none>", description = "Default permission: automatic LEARNING result access.")
+    @Option(names = "--federated-learning", negatable = true,
+            description = "Default permission: allow federated learning, only model updates leave the site. Default: true.")
+    private Boolean federatedLearning;
+
+    @Option(names = "--auto-learning", paramLabel = "<all|certified|none>", description = "Default permission: automatic federated LEARNING result access.")
     private String autoLearning;
+
+    @Option(names = "--tre-learning", negatable = true,
+            description = "Default permission: allow TRE learning, the tool runs at this site and only its results leave it. Default: false.")
+    private Boolean treLearning;
+
+    @Option(names = "--auto-tre-learning", paramLabel = "<all|certified|none>", description = "Default permission: automatic TRE LEARNING result access.")
+    private String autoTreLearning;
 
     @Option(names = "--allow-queries", negatable = true, description = "Default permission: answer federated queries. Default: true.")
     private Boolean allowQueries;
@@ -77,6 +88,15 @@ public class ClientConfig extends BaseDeploymentConfig {
 
     @Option(names = "--query-sample-threshold", paramLabel = "<n>", description = "Default permission: minimum sample size to answer a query. Default: ${bundle:flnet.client.permission.query-sample-threshold}.")
     private Integer querySampleThreshold;
+
+    @Option(names = "--query-max-conditions", paramLabel = "<n>", description = "Most conditions a query may have; larger ones are rejected before they run. Default: ${bundle:flnet.client.query.max-conditions}.")
+    private Integer queryMaxConditions;
+
+    @Option(names = "--query-max-temporal-relations", paramLabel = "<n>", description = "Most temporal relations a query may have. Default: ${bundle:flnet.client.query.max-temporal-relations}.")
+    private Integer queryMaxTemporalRelations;
+
+    @Option(names = "--query-max-depth", paramLabel = "<n>", description = "Most nesting levels of a query, a single condition is one level. Default: ${bundle:flnet.client.query.max-depth}.")
+    private Integer queryMaxDepth;
 
     @Option(names = "--listen", paramLabel = "<address>",
             description = "Interface the client listens on: localhost (this machine only) or an IPv4 like 0.0.0.0. Default: localhost.")

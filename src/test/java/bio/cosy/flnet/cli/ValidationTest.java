@@ -35,6 +35,8 @@ class ValidationTest {
         List<String> problems = client.problems(validator);
         assertEquals(List.of(
                 "A platform username and password are required.",
+                "A query needs at least one condition.",
+                "A query needs at least one level.",
                 "Automatic access in the default permission requires allowing automatic permissions for that resource.",
                 "Invalid instance name. Use 1-32 lowercase letters, digits and dashes, starting and ending with a letter or digit (e.g. 'site-a').",
                 "Ports must be between 1 and 65535.",

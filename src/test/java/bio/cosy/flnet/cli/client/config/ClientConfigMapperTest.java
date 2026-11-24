@@ -7,6 +7,7 @@ import jakarta.inject.Inject;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
+import static org.junit.jupiter.api.Assertions.assertFalse;
 import static org.junit.jupiter.api.Assertions.assertTrue;
 
 @QuarkusTest
@@ -23,6 +24,9 @@ class ClientConfigMapperTest {
         options.setAllowAutoStatistics(true);
         options.setAutoStatistics("all");
         options.setQueryRetryTime(42);
+        options.setFederatedLearning(false);
+        options.setTreLearning(true);
+        options.setAutoTreLearning("certified");
 
         PersistentClientConfig target = new PersistentClientConfig();
         mapper.updateFromOptions(options, target);
@@ -32,6 +36,9 @@ class ClientConfigMapperTest {
         assertTrue(target.isAllowAutoStatistics());
         assertEquals(AutoAccess.ALL, target.getAutoStatistics());
         assertEquals(42, target.getQueryRetryTime());
+        assertFalse(target.isFederatedLearning());
+        assertTrue(target.isTreLearning());
+        assertEquals(AutoAccess.CERTIFIED_APPS, target.getAutoTreLearning());
     }
 
     @Test

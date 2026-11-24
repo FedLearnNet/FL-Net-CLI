@@ -78,13 +78,24 @@ public class PlatformQuestionnaire extends BaseQuestionnaire {
     }
 
     private void learning(PlatformConfig given, FLNetPlatformDeployment platform) {
-        section("4. Learning and access");
+        section("4. Learning, queries and access");
         platform.setMinClients(prompter.integer("--min-clients", given.getMinClients(), "Minimum number of clients to start a learning",
                 platform.getMinClients(), 1));
         if (platform.isBelowRecommendedMinClients()) {
             ConsoleHelper.warn("Fewer than " + PersistentPlatformConfig.RECOMMENDED_MIN_CLIENTS + " clients weakens or disables privacy techniques like SMPC.");
             prompter.requireConfirmation("Continue with a minimum of " + platform.getMinClients() + " clients?");
         }
+        ConsoleHelper.info("A query result shows its count only when enough clients matched patients, or one TRE client did.");
+        platform.setMinQueryResults(prompter.integer("--min-query-results", given.getMinQueryResults(),
+                "Minimum clients with matches before a query shows its count", platform.getMinQueryResults(), 1));
+        if (platform.isBelowRecommendedMinQueryResults()) {
+            ConsoleHelper.warn("Fewer than " + PersistentPlatformConfig.RECOMMENDED_MIN_QUERY_RESULTS
+                    + " clients lets a query result belong to a single site.");
+            prompter.requireConfirmation("Continue with a minimum of " + platform.getMinQueryResults() + " clients?");
+        }
+        ConsoleHelper.info("The result shows once all clients answered; clients that answer after the timeout are left out.");
+        platform.setQueryReleaseTimeout(prompter.integer("--query-release-timeout", given.getQueryReleaseTimeout(),
+                "Seconds a query waits for all clients to answer", platform.getQueryReleaseTimeout(), 1));
         ConsoleHelper.info("This lets a project choose to run its FL aggregator on the platform itself, instead of");
         ConsoleHelper.info("always picking a random client - useful when no client should be trusted with that role.");
         platform.setPlatformAggregatorEnabled(prompter.confirm("--platform-aggregator", given.getPlatformAggregatorEnabled(),

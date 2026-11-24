@@ -106,7 +106,21 @@ public interface FLNetCliConfig {
 
         PermissionSettings permission();
 
+        QuerySettings query();
+
         CertificateSettings certificate();
+    }
+
+    interface QuerySettings {
+
+        @Positive(message = "A query needs at least one condition.")
+        int maxConditions();
+
+        @PositiveOrZero(message = "Must not be negative.")
+        int maxTemporalRelations();
+
+        @Positive(message = "A query needs at least one level.")
+        int maxDepth();
     }
 
     interface PermissionSettings {
@@ -140,6 +154,12 @@ public interface FLNetCliConfig {
 
         @Positive(message = "At least one client is required to start a learning.")
         int minClients();
+
+        @Positive(message = "At least one client with matches is required to release a query result.")
+        int minQueryResults();
+
+        @Positive(message = "The query release timeout must be at least one second.")
+        int queryReleaseTimeout();
 
         String keycloakAdminUsername();
     }

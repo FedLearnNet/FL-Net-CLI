@@ -1,0 +1,19 @@
+# Merged over the docker-compose.yml that 'flnet client init' writes, inside the DinD image only.
+services:
+  local-learning-api:
+    environment:
+      # the inner daemon pulls slower than a host's, e.g. a tool image of the platform within the request
+      - QUARKUS_REST_CLIENT_ORCH_DOCKER_SERVICE_READ_TIMEOUT=1800000
+      - QUARKUS_REST_CLIENT_ORCH_DOCKER_SERVICE_CONNECT_TIMEOUT=10000
+    extra_hosts:
+      - "host.docker.internal:${HOST_DOCKER_INTERNAL_IP:-host-gateway}"
+
+  controller:
+    extra_hosts:
+      - "host.docker.internal:${HOST_DOCKER_INTERNAL_IP:-host-gateway}"
+
+  # its check waits on a slow first start: more time on a busy machine
+  keycloak:
+    healthcheck:
+      timeout: 15s
+      start_period: 5m

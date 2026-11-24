@@ -1,11 +1,21 @@
 name: End-to-end test
 
-# Sets up a real platform and client with the CLI (docker compose), waits for all health endpoints
-# and removes everything again. Pulls several GB of images, so it runs nightly and on demand
-# instead of on every push.
+# Runs a platform and two clients in DinD containers (dind/) and checks the important features against their REST APIs:
+# tool self-tests, analyses, experiments, test engines, ETL, queries, statistics and federated learning
+# (EndToEndTest). The platform builds tools on start, so a run takes hours: nightly, on demand, and called by the
+# repositories of the services with their fresh images:
+#
+#   jobs:
+#     e2e:
+#       uses: FedLearnNet/FL-Net-CLI/.github/workflows/e2e.yml@develop
+#       with:
+#         images: global-learning-api=ghcr.io/fedlearnnet/learning-apis/global-learning-api:my-tag
+#       permissions:
+#         contents: read
+#         packages: read
 on:
   schedule:
-    - cron: "0 3 * * *"
+    - cron: "0 1 * * *"
   workflow_dispatch:
     inputs:
       image-tag:
@@ -13,12 +23,38 @@ on:
         default: staging
         type: choice
         options: [staging, latest]
+      images:
+        description: "Single images instead, by compose service: global-learning-api=ghcr.io/...:tag,orch-api=..."
+        default: ""
+      flnet-from-source:
+        description: "Build flnet from this ref for the DinD images instead of using the flnet-version release"
+        default: true
+        type: boolean
+  workflow_call:
+    inputs:
+      image-tag:
+        description: "Tag of the FL-Net service images: staging or latest"
+        default: staging
+        type: string
+      images:
+        description: "Single images instead, by compose service: global-learning-api=ghcr.io/...:tag,orch-api=..."
+        default: ""
+        type: string
+      flnet-version:
+        description: "flnet release the DinD images are built with"
+        default: staging
+        type: string
+      cli-ref:
+        description: "Ref of FL-Net-CLI with the test"
+        default: develop
+        type: string
 
 permissions:
   contents: read
+  packages: read
 
 concurrency:
-  group: ${{ github.workflow }}-${{ github.ref }}
+  group: ${{ github.workflow }}-${{ github.repository }}-${{ github.ref }}
   cancel-in-progress: true
 
 env:
@@ -26,18 +62,49 @@ env:
 
 jobs:
   e2e:
-    name: Platform and client (${{ inputs.image-tag || 'staging' }})
+    name: Platform, clients and features (${{ inputs.image-tag || 'staging' }})
     runs-on: ubuntu-latest
-    timeout-minutes: 45
+    timeout-minutes: 330
     steps:
       - uses: actions/checkout@v7
+        with:
+          # a caller's run checks out its own repository by default
+          repository: FedLearnNet/FL-Net-CLI
+          ref: ${{ inputs.cli-ref || (github.repository == 'FedLearnNet/FL-Net-CLI' && github.sha) || 'develop' }}
+      # three inner Docker daemons pull the service images each, and the platform builds the tools
+      - name: Free disk space
+        run: |
+          sudo rm -rf /usr/share/dotnet /usr/local/lib/android /opt/ghc /opt/hostedtoolcache/CodeQL
+          docker system prune -af
+          df -h /
       - uses: actions/setup-java@v6
         with:
           distribution: temurin
           java-version: "25"
           cache: maven
+      - uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ github.token }}
+      # the flnet of this ref, built like the musl release asset of 'Build and release flnet'
+      - name: Build flnet
+        if: ${{ github.repository == 'FedLearnNet/FL-Net-CLI' && (github.event_name == 'schedule' || inputs.flnet-from-source) }}
+        run: |
+          docker run --rm -v "$PWD:/src" -v "$HOME/.m2:/root/.m2" -w /src \
+            bellsoft/liberica-native-image-kit-container:jdk-25-nik-25.0.4.1-musl \
+            ./mvnw -B --no-transfer-progress package -Dnative -DskipTests
+          sudo chown -R "$(id -u):$(id -g)" target "$HOME/.m2"
+          mv target/*-runner "$RUNNER_TEMP/flnet"
+          echo "FLNET_BINARY=-De2e.flnet-binary=$RUNNER_TEMP/flnet" >> "$GITHUB_ENV"
       - name: End-to-end test
-        run: ./mvnw test -Pe2e -De2e.image-tag=${{ inputs.image-tag || 'staging' }} -De2e.timeout-minutes=20
+        env:
+          IMAGE_TAG: ${{ inputs.image-tag || 'staging' }}
+          IMAGES: ${{ inputs.images }}
+          FLNET_VERSION: ${{ inputs.flnet-version || 'staging' }}
+        run: |
+          ./mvnw test -Pe2e -De2e.image-tag="$IMAGE_TAG" -De2e.images="$IMAGES" -De2e.flnet-version="$FLNET_VERSION" \
+            -De2e.docker-config="$HOME/.docker/config.json" -De2e.timeout-minutes=45 ${FLNET_BINARY:-}
       - name: Upload test reports
         if: ${{ failure() }}
         uses: actions/upload-artifact@v7

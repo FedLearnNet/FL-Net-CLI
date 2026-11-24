@@ -9,11 +9,16 @@ public enum AutoAccess {
         return this == CERTIFIED_APPS ? "certified" : name().toLowerCase(Locale.ROOT);
     }
 
+    // accepts the .env name (CERTIFIED_APPS) and the CLI name (certified)
     public static AutoAccess parse(String value, AutoAccess fallback) {
-        try {
-            return value == null ? fallback : valueOf(value.strip().toUpperCase(Locale.ROOT));
-        } catch (IllegalArgumentException e) {
+        if (value == null) {
             return fallback;
         }
+        for (AutoAccess access : values()) {
+            if (access.name().equalsIgnoreCase(value.strip()) || access.cliName().equalsIgnoreCase(value.strip())) {
+                return access;
+            }
+        }
+        return fallback;
     }
 }

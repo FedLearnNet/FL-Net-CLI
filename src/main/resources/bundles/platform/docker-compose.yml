@@ -53,6 +53,9 @@ services:
       - env/global-learning-secrets.env
     environment:
       - FLNET_FEDERATED_LEARNING_PARTICIPANTS_MINAMOUNT=${MIN_CLIENTS_NEEDED_FOR_LEARNING}
+      - FLNET_QUERY_MIN_QUERY_RESULTS=${MIN_QUERY_RESULTS:-3}
+      # plain seconds, read as a Duration by Quarkus
+      - FLNET_QUERY_RELEASE_TIMEOUT=${QUERY_RELEASE_TIMEOUT:-300}
       - QUARKUS_HTTP_CORS_ORIGINS=${DEPLOYED_ON_DOMAIN}
       - QUARKUS_DATASOURCE_USERNAME=user
       - FLNET_FEDERATED_LEARNING_PLATFORM_AGGREGATOR_ENABLED=${PLATFORM_AGGREGATOR_ENABLED}
@@ -63,6 +66,10 @@ services:
       - FLNET_BFF_FRONTEND_URL=${DEPLOYED_ON_DOMAIN}
       - QUARKUS_DATASOURCE_JDBC_URL=jdbc:postgresql://global-learning-db:5432/global-learning-management
       - QUARKUS_REST_CLIENT_RELAY_API_URL=http://relay-server:9140
+      # test engines reach the relay and the controller in their own network, by container name
+      - FLNET_TEST_ENGINE_FEDERATED_RELAY_URL=http://${COMPOSE_PROJECT_NAME}-relay-server:9140/
+      - FLNET_TEST_ENGINE_FEDERATED_CONTROLLER_ORCH_URL=http://${COMPOSE_PROJECT_NAME}-controller:8000/
+      - FLNET_TEST_ENGINE_FEDERATED_CONTROLLER_COMM_URL=http://${COMPOSE_PROJECT_NAME}-controller:8001/
       - QUARKUS_REST_CLIENT_DATA_MODELER_SERVICE_URL=http://datamodeler-api:8080
       - QUARKUS_REST_CLIENT_ORCH_DOCKER_SERVICE_URL=http://orch-api:8080
       - QUARKUS_REST_CLIENT_LOCAL_CONTROLLER_URL=http://controller:8000
@@ -77,6 +84,8 @@ services:
 
   global-learning-db:
     image: pgvector/pgvector:pg18
+    # reaps health checks orphaned under load; postgres as pid 1 takes their exit for a crash and restarts
+    init: true
     environment:
       - POSTGRES_DB=global-learning-management
       - POSTGRES_USER=user
@@ -107,6 +116,8 @@ services:
       - CONTAINER_FILE_TRANSFER_VOLUME_PATH=/mnt/input
       - CONTAINER_NETWORK_LEARNING=${COMPOSE_PROJECT_NAME}-global-learning-api:8080
       - CONTAINER_NETWORK_CONTROLLER=${COMPOSE_PROJECT_NAME}-controller:8001
+      # test engines of federated tools create their test runs at the relay
+      - CONTAINER_NETWORK_RELAY=${COMPOSE_PROJECT_NAME}-relay-server:9140
       - CONTAINER_NAME=${COMPOSE_PROJECT_NAME}
       - ORCH_DOCKER__PRIVATE__REGISTRY_URL=${TOOL_REGISTRY:-}
         # the build pipeline pushes tools to the platform registry; credentials are in orch-secrets.env
@@ -129,6 +140,8 @@ services:
 
   orch-db:
     image: postgres:18.4
+    # reaps health checks orphaned under load; postgres as pid 1 takes their exit for a crash and restarts
+    init: true
     restart: always
     environment:
       - POSTGRES_DB=global-learning-management
@@ -160,6 +173,8 @@ services:
 
   relay-server:
     image: ghcr.io/fedlearnnet/federated-learning-communication-api/controller-relay:${IMAGE_TAG}
+    # the orch api attaches it by this name (CONTAINER_NETWORK_RELAY)
+    container_name: ${COMPOSE_PROJECT_NAME}-relay-server
     restart: always
     ports:
       - ${EXPOSED_RELAY_TCP_PORT}:9141
@@ -230,6 +245,8 @@ services:
 
   keycloak-db:
     image: postgres:18.4
+    # reaps health checks orphaned under load; postgres as pid 1 takes their exit for a crash and restarts
+    init: true
     volumes:
       - keycloak_db_volume:/var/lib/postgresql
     env_file:

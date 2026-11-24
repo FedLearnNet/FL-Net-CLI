@@ -17,6 +17,7 @@ import java.util.List;
 public class PersistentPlatformConfig {
 
     public static final int RECOMMENDED_MIN_CLIENTS = 3;
+    public static final int RECOMMENDED_MIN_QUERY_RESULTS = 3;
     // the file names the datamodeler expects in /data/sapbert
     public static final List<String> SAPBERT_FILES = List.of("sapbert.onnx", "tokenizer.json");
 
@@ -29,6 +30,10 @@ public class PersistentPlatformConfig {
     private int relayPort;
     @Min(value = 1, message = "At least one client is required to start a learning.")
     private int minClients;
+    @Min(value = 1, message = "At least one client with matches is required to release a query result.")
+    private int minQueryResults;
+    @Min(value = 1, message = "The query release timeout must be at least one second.")
+    private int queryReleaseTimeout;
     private boolean platformAggregatorEnabled = false;
     private boolean sapbertEnabled = false;
     private Path sapbertDir;
@@ -50,6 +55,10 @@ public class PersistentPlatformConfig {
 
     public boolean isBelowRecommendedMinClients() {
         return minClients < RECOMMENDED_MIN_CLIENTS;
+    }
+
+    public boolean isBelowRecommendedMinQueryResults() {
+        return minQueryResults < RECOMMENDED_MIN_QUERY_RESULTS;
     }
 
     public List<Path> getMissingSapbertFiles() {

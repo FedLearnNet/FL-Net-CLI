@@ -40,6 +40,14 @@ public class PlatformConfig extends BaseDeploymentConfig {
             description = "Minimum clients required to start a learning (below 3 weakens SMPC privacy). Default: ${bundle:flnet.platform.min-clients}.")
     private Integer minClients;
 
+    @Option(names = "--min-query-results", paramLabel = "<n>",
+            description = "Clients with matches needed before a query shows its count, one TRE client is enough (below 3 a count can belong to one site). Default: ${bundle:flnet.platform.min-query-results}.")
+    private Integer minQueryResults;
+
+    @Option(names = "--query-release-timeout", paramLabel = "<seconds>",
+            description = "Seconds a query waits for all clients to answer; then the result shows and later answers are rejected. Default: ${bundle:flnet.platform.query-release-timeout}.")
+    private Integer queryReleaseTimeout;
+
     @Option(names = "--platform-aggregator", negatable = true,
             description = "Allow projects to run their FL aggregator on this platform instead of a random client. Default: false.")
     private Boolean platformAggregatorEnabled;

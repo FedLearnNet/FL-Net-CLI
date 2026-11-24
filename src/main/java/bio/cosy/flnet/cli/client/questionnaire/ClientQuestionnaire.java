@@ -74,6 +74,7 @@ public class ClientQuestionnaire extends BaseQuestionnaire {
         network(given, client);
         credentials(given, client, mode);
         permissions(given, client);
+        queryLimits(given, client);
         webAccess(given, client, clientBO.portPlanner(client));
         certificate(given, client);
     }
@@ -156,12 +157,7 @@ public class ClientQuestionnaire extends BaseQuestionnaire {
         client.setAutoMetrics(!client.isAllowAutoMetrics() ? AutoAccess.NONE
                 : prompter.choice("--auto-metrics", given.getAutoMetrics(), "Automatic METRICS access ('none' = manual approval)",
                 allOrNone, AutoAccess::cliName, client.getAutoMetrics()));
-        if (client.isAllowAutoLearning()) {
-            ConsoleHelper.info("Tools that need internet or host access always require manual approval, regardless of this setting.");
-        }
-        client.setAutoLearning(!client.isAllowAutoLearning() ? AutoAccess.NONE
-                : prompter.choice("--auto-learning", given.getAutoLearning(), "Automatic LEARNING result access ('certified' = only certified tools)",
-                List.of(AutoAccess.values()), AutoAccess::cliName, client.getAutoLearning()));
+        learning(given, client);
 
         ConsoleHelper.info("Federated queries are answered automatically when allowed, protected by thresholding and rate limiting.");
         client.setAllowQueries(prompter.confirm("--allow-queries", given.getAllowQueries(), "Allow federated queries against this client?",
@@ -174,6 +170,35 @@ public class ClientQuestionnaire extends BaseQuestionnaire {
         }
     }
 
+
+    // federated: only model updates leave the site; TRE: the tool runs at this site and only its results leave it
+    private void learning(ClientConfig given, FLNetClientDeployment client) {
+        ConsoleHelper.info("Learning runs federated (only model updates leave this site) or in the TRE (the tool runs here, only its results leave).");
+        if (client.isAllowAutoLearning()) {
+            ConsoleHelper.info("Tools that need internet or host access always require manual approval, regardless of this setting.");
+        }
+        client.setFederatedLearning(prompter.confirm("--federated-learning", given.getFederatedLearning(),
+                "Allow federated learning on new cohorts?", client.isFederatedLearning()));
+        client.setAutoLearning(!client.isFederatedLearning() || !client.isAllowAutoLearning() ? AutoAccess.NONE
+                : prompter.choice("--auto-learning", given.getAutoLearning(), "Automatic federated LEARNING result access ('certified' = only certified tools)",
+                List.of(AutoAccess.values()), AutoAccess::cliName, client.getAutoLearning()));
+        client.setTreLearning(prompter.confirm("--tre-learning", given.getTreLearning(),
+                "Allow TRE learning on new cohorts?", client.isTreLearning()));
+        client.setAutoTreLearning(!client.isTreLearning() || !client.isAllowAutoLearning() ? AutoAccess.NONE
+                : prompter.choice("--auto-tre-learning", given.getAutoTreLearning(), "Automatic TRE LEARNING result access ('certified' = only certified tools)",
+                List.of(AutoAccess.values()), AutoAccess::cliName, client.getAutoTreLearning()));
+    }
+
+    // asked even without default permission, manual permissions can allow queries too
+    private void queryLimits(ClientConfig given, FLNetClientDeployment client) {
+        ConsoleHelper.info("Larger queries are rejected before they run, so their run time cannot reveal single patients.");
+        client.setQueryMaxConditions(prompter.integer("--query-max-conditions", given.getQueryMaxConditions(),
+                "Most conditions a query may have", client.getQueryMaxConditions(), 1));
+        client.setQueryMaxTemporalRelations(prompter.integer("--query-max-temporal-relations", given.getQueryMaxTemporalRelations(),
+                "Most temporal relations a query may have", client.getQueryMaxTemporalRelations(), 0));
+        client.setQueryMaxDepth(prompter.integer("--query-max-depth", given.getQueryMaxDepth(),
+                "Most nesting levels of a query (a single condition is one level)", client.getQueryMaxDepth(), 1));
+    }
 
     private void webAccess(ClientConfig given, FLNetClientDeployment client, PortPlanner ports) {
         section("4. Web access",

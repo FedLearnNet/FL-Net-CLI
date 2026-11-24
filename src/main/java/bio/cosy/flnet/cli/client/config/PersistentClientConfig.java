@@ -36,11 +36,21 @@ public class PersistentClientConfig {
     private AutoAccess autoStatistics = AutoAccess.NONE;
     private AutoAccess autoMetrics = AutoAccess.NONE;
     private AutoAccess autoLearning = AutoAccess.NONE;
+    private boolean federatedLearning = true;
+    private boolean treLearning;
+    private AutoAccess autoTreLearning = AutoAccess.NONE;
     private boolean allowQueries = true;
     @Min(value = 0, message = "The query retry time cannot be negative.")
     private int queryRetryTime;
     @Min(value = 0, message = "The query sample threshold cannot be negative.")
     private int querySampleThreshold;
+    // shape limits of the local cost guard, so run time cannot reveal single patients
+    @Min(value = 1, message = "A query needs at least one condition.")
+    private int queryMaxConditions;
+    @Min(value = 0, message = "The maximum of temporal relations cannot be negative.")
+    private int queryMaxTemporalRelations;
+    @Min(value = 1, message = "A query needs at least one level.")
+    private int queryMaxDepth;
 
     // generated secrets
     private String learningDbPassword;
@@ -76,6 +86,9 @@ public class PersistentClientConfig {
         autoStatistics = AutoAccess.NONE;
         autoMetrics = AutoAccess.NONE;
         autoLearning = AutoAccess.NONE;
+        federatedLearning = true;
+        treLearning = false;
+        autoTreLearning = AutoAccess.NONE;
         allowQueries = true;
         queryRetryTime = retryTime;
         querySampleThreshold = sampleThreshold;
@@ -108,6 +121,7 @@ public class PersistentClientConfig {
     boolean isAutoAccessAllowed() {
         return (allowAutoStatistics || autoStatistics == AutoAccess.NONE)
                 && (allowAutoMetrics || autoMetrics == AutoAccess.NONE)
-                && (allowAutoLearning || autoLearning == AutoAccess.NONE);
+                && (allowAutoLearning || autoLearning == AutoAccess.NONE)
+                && (allowAutoLearning || autoTreLearning == AutoAccess.NONE);
     }
 }

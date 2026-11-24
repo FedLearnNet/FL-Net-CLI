@@ -29,6 +29,8 @@ services:
 
   orch-db:
     image:  postgres:18.6
+    # reaps health checks orphaned under load; postgres as pid 1 takes their exit for a crash and restarts
+    init: true
     restart: always
     environment:
       - POSTGRES_DB=local-learning-management
@@ -83,7 +85,13 @@ services:
     - FLNET_COHORT_COHORT_PERMISSION_IS_ALLOWED_TO_QUERY=${COHORT_PERMISSION_IS_ALLOWED_TO_QUERY:-true}
     - FLNET_COHORT_COHORT_PERMISSION_QUERY_SAMPLE_THRESHOLD=${COHORT_PERMISSION_QUERY_SAMPLE_THRESHOLD:-100}
     - FLNET_COHORT_COHORT_PERMISSION_GLOBAL_USER_ID=${COHORT_PERMISSION_GLOBAL_USER_ID:-}
+    - FLNET_PRIVACY_QUERY_MAX_CONDITIONS=${QUERY_MAX_CONDITIONS:-30}
+    - FLNET_PRIVACY_QUERY_MAX_TEMPORAL_RELATIONS=${QUERY_MAX_TEMPORAL_RELATIONS:-5}
+    - FLNET_PRIVACY_QUERY_MAX_DEPTH=${QUERY_MAX_DEPTH:-6}
     - FLNET_COHORT_COHORT_PERMISSION_AUTO_TRAINING_ACCESS=${COHORT_PERMISSION_AUTO_TRAINING_ACCESS:-NONE}
+    - FLNET_COHORT_COHORT_PERMISSION_FEDERATED_TRAINING_ACCESS=${COHORT_PERMISSION_FEDERATED_TRAINING_ACCESS:-ENABLED}
+    - FLNET_COHORT_COHORT_PERMISSION_TRE_TRAINING_ACCESS=${COHORT_PERMISSION_TRE_TRAINING_ACCESS:-DISABLED}
+    - FLNET_COHORT_COHORT_PERMISSION_TRE_AUTO_TRAINING_ACCESS=${COHORT_PERMISSION_TRE_AUTO_TRAINING_ACCESS:-NONE}
     - FLNET_COHORT_COHORT_PERMISSION_AUTO_STATISTICS_ACCESS=${COHORT_PERMISSION_AUTO_STATISTICS_ACCESS:-NONE}
     - FLNET_COHORT_COHORT_PERMISSION_AUTO_METRICS_ACCESS=${COHORT_PERMISSION_AUTO_METRICS_ACCESS:-NONE}
     - QUARKUS_OIDC_CLIENT_GLOBAL_WEBSOCKET_AUTH_SERVER_URL=${GLOBAL_KEYCLOAK_URL}
@@ -102,6 +110,8 @@ services:
 
   local-learning-db:
     image:  postgres:18.6
+    # reaps health checks orphaned under load; postgres as pid 1 takes their exit for a crash and restarts
+    init: true
     restart: always
     environment:
       - POSTGRES_DB=local-learning-management
@@ -194,6 +204,8 @@ services:
 
   keycloak-db:
     image: postgres:18.6
+    # reaps health checks orphaned under load; postgres as pid 1 takes their exit for a crash and restarts
+    init: true
     restart: always
     volumes:
       - keycloak_db_volume:/var/lib/postgresql
