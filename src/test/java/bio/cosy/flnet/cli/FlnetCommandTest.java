@@ -109,6 +109,8 @@ class FlnetCommandTest {
         assertEquals("ssl", env.get("COMPOSE_PROFILES"));
         assertEquals("test-tag", env.get("IMAGE_TAG"));
         assertEquals("example/platform:custom", env.get("FRONTEND_IMAGE"));
+        String relayPort = env.get("EXPOSED_RELAY_TCP_PORT").substring(env.get("EXPOSED_RELAY_TCP_PORT").lastIndexOf(':') + 1);
+        assertEquals("fl.example.org:" + relayPort, env.get("PLATFORM_RELAY_ADDRESS"));
         assertEquals("rw-------", PosixFilePermissions.toString(Files.getPosixFilePermissions(target.resolve(".env"))));
 
         Map<String, String> keycloak = EnvFileHelper.read(target.resolve("env/keycloak-secrets.env"));

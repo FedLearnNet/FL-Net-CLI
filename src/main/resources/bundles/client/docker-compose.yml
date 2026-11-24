@@ -144,7 +144,7 @@ services:
       - local-learning-network
 
   keycloak:
-    image: quay.io/keycloak/keycloak:26.7
+    image: quay.io/keycloak/keycloak:26.8
     restart: always
     command:
       - "start"

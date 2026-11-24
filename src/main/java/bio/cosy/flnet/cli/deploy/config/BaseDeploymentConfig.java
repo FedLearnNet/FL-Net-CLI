@@ -9,7 +9,7 @@ import picocli.CommandLine.Option;
 @Setter
 public abstract class BaseDeploymentConfig {
 
-    @Option(names = "--image-tag", paramLabel = "<tag>", description = "Image tag. Default: ${bundle:flnet.images.tag}.")
+    @Option(names = "--image-tag", paramLabel = "<tag>", description = "Image tag. Default: this CLI's version, staging for develop builds.")
     private String imageTag;
 
     @Option(names = "--frontend-image", paramLabel = "<image>",

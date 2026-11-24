@@ -2,6 +2,8 @@ package bio.cosy.flnet.cli.network.bo;
 
 import bio.cosy.flnet.cli.config.FLNetCliConfig;
 import bio.cosy.flnet.cli.network.FLNetNetwork;
+import bio.cosy.flnet.cli.helper.ReleaseVersion;
+import bio.cosy.flnet.cli.helper.VersionProvider;
 import bio.cosy.flnet.cli.helper.WebAddress;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
@@ -32,6 +34,12 @@ public class FLNetNetworkBO {
 
     public Optional<FLNetNetwork> byPlatformUrl(String url) {
         return all().stream().filter(n -> n.getAddresses().stream().map(FLNetNetworkBO::normalize).anyMatch(normalize(url)::equals)).findFirst();
+    }
+
+    // unless configured: the CLI's own version for releases (X.Y.Z), 'staging' for develop builds (X.Y.Z.dev)
+    public String imageTag() {
+        return config.images().tag().orElseGet(() -> ReleaseVersion.parse(VersionProvider.version())
+                .filter(ReleaseVersion::isRelease).map(ReleaseVersion::toString).orElse("staging"));
     }
 
     public String platformFrontendImage(String platformUrl, String tag) {

@@ -59,8 +59,7 @@ public interface FLNetCliConfig {
 
     interface ImageSettings {
 
-        @WithDefault("latest")
-        String tag();
+        Optional<String> tag();
 
         Optional<String> toolRegistry();
 
