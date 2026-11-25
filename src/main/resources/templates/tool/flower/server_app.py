@@ -20,7 +20,8 @@ def main(grid: Grid, context: Context) -> None:
 
     result = strategy.start(grid=grid, initial_arrays=arrays, num_rounds=num_rounds)
 
-    # TODO replace get_initial_model()/the strategy above with your own; model_dir() is where
-    # FL-Net picks up the result (see task.py).
+    # TODO replace get_initial_model()/the strategy above with your own. Save the final model
+    # under model_dir() with the file name main.py declares as FlowerApp(model_file=...): only
+    # then does FL-Net count the run as finished and upload the model (see task.py).
     ndarrays = result.arrays.to_numpy_ndarrays()
     np.savez(model_dir() / "model.npz", *ndarrays)

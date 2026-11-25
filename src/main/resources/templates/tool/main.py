@@ -11,7 +11,10 @@ engine = FedDBEngine()
 # The Flower App bundle (ClientApp/ServerApp, its own pyproject.toml) lives in flower_app/ -
 # fill in flower_app/{tool.pythonPackage}/server_app.py and client_app.py. The engine starts
 # and supervises Flower's own SuperLink/SuperNode process for you; you never call `flwr` yourself.
-engine.register_flower(FlowerApp(app_dir="flower_app"))
+# model_file is the file server_app.py saves the final model to, inside model_dir() (task.py):
+# the platform's run only finishes once that file was written during the run, and it is then
+# uploaded as the trained model. Keep the two names in sync if you rename it.
+engine.register_flower(FlowerApp(app_dir="flower_app", model_file="model.npz"))
 {#else}
 {#if tool.federated}
 from aggregator import MeanAggregator

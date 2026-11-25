@@ -13,7 +13,10 @@ def get_initial_model() -> list[np.ndarray]:
 
 
 def model_dir() -> Path:
-    """Where the ServerApp should save the final model, so FL-Net picks it up correctly."""
+    """Where the ServerApp should save the final model, so FL-Net picks it up correctly.
+
+    The engine starts Flower with MODEL_DIR set to this directory (and as the working
+    directory), so always save here, never to a path of your own."""
     path = Path(system_settings.model_dir)
     path.mkdir(parents=True, exist_ok=True)
     return path

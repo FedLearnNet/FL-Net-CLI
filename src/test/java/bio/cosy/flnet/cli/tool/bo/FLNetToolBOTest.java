@@ -81,8 +81,19 @@ class FLNetToolBOTest {
 
         String mainPy = Files.readString(dir.resolve("main.py"));
         assertTrue(mainPy.contains("from pyfedappwrap.learning.federated.flower_app import FlowerApp"));
-        assertTrue(mainPy.contains("engine.register_flower(FlowerApp(app_dir=\"flower_app\"))"));
+        assertTrue(mainPy.contains("engine.register_flower(FlowerApp(app_dir=\"flower_app\", model_file=\"model.npz\"))"));
         assertFalse(mainPy.contains("register_federated"), "a Flower tool must not also register FL-Net's own federated path");
+    }
+
+    @Test
+    void theServerAppSavesTheModelUnderTheFileNameMainPyDeclares(@TempDir Path dir) throws Exception {
+        FLNetTool tool = flowerTool(dir);
+        toolBO.generate(tool, false);
+        String pkg = tool.getPythonPackage();
+
+        String serverApp = Files.readString(dir.resolve("flower_app/" + pkg + "/server_app.py"));
+        assertTrue(serverApp.contains("model_dir() / \"model.npz\""),
+                "the engine only reports the run finished once main.py's model_file was saved");
     }
 
     @Test
