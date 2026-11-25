@@ -92,7 +92,7 @@ class FLNetToolTest {
         tool.setSourceUrl("https://example.org/repo");
         tool.setDirectory(Path.of("fed"));
         tool.setAppId("1");
-        tool.setSdkVersion("0.7.12");
+        tool.setSdkVersion("0.7.16");
         tool.setBaseImage("base");
         tool.setPlatformAddress(WebAddress.parse("https://fl.example.org:8443"));
         tool.setKeycloakRealmPath("/auth/realms/FLNet-Platform");
