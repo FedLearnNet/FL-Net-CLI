@@ -21,6 +21,7 @@ jobs:
     timeout-minutes: 5
     outputs:
       version: ${{ steps.version.outputs.version }}
+      tag_image: ${{ steps.version.outputs.tag_image }}
       release: ${{ steps.version.outputs.release }}
       prerelease: ${{ steps.version.outputs.prerelease }}
     steps:
@@ -140,11 +141,12 @@ jobs:
       - name: Build and push
         env:
           VERSION: ${{ needs.version.outputs.version }}
-          RELEASE: ${{ needs.version.outputs.release }}
+          TAG_IMAGE: ${{ needs.version.outputs.tag_image }}
+        # X.Y.Z.dev is a moving tag like staging, see FedLearnNet/.github/actions/version
         run: |
           image=ghcr.io/fedlearnnet/fl-net-cli/flnet
           tags=()
-          if [ "$RELEASE" = true ]; then tags+=(-t "$image:$VERSION"); fi
+          if [ "$TAG_IMAGE" = true ]; then tags+=(-t "$image:$VERSION"); fi
           if [ "$GITHUB_REF" = refs/heads/main ]; then tags+=(-t "$image:latest"); fi
           if [ "$GITHUB_REF" = refs/heads/develop ]; then tags+=(-t "$image:staging"); fi
           docker buildx build --platform linux/amd64,linux/arm64 --provenance=false \
