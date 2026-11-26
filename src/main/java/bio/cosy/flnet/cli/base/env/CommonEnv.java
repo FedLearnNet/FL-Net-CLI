@@ -10,6 +10,8 @@ import lombok.experimental.Accessors;
 public enum CommonEnv implements EnvVariable {
     COMPOSE_PROJECT_NAME("docker compose project: prefix of all containers, volumes and networks of this deployment"),
     FLNET_INSTANCE_NAME("Name of this instance in flnet (--name)"),
+    FLNET_DEPLOYMENT_KIND("'client' or 'platform'; tells the updater which flnet commands apply"),
+    FLNET_DEPLOYMENT_DIR("Host path of this deployment; orch-api mounts it at the same path into the updater"),
     IMAGE_TAG("Tag of the FL-Net images: 'latest' (main), 'staging' (develop) or a release version"),
     FRONTEND_IMAGE("Docker image of the web frontend"),
     TOOL_REGISTRY("host[:port] of the platform hosted registry tools are pulled from without login"),

@@ -52,6 +52,16 @@ public abstract class BaseFLNetDeployableInstance extends BaseFLNet {
 
     public abstract DeploymentKind getKind();
 
+    /**
+     * Images of another version. A frontend image on the old tag follows; a custom one stays.
+     */
+    public void useImageTag(String tag) {
+        if (frontendImage != null && imageTag != null && frontendImage.endsWith(":" + imageTag)) {
+            frontendImage = frontendImage.substring(0, frontendImage.length() - imageTag.length()) + tag;
+        }
+        imageTag = tag;
+    }
+
     @Override
     public String getTypeLabel() {
         return getKind().bundle();
@@ -141,6 +151,9 @@ public abstract class BaseFLNetDeployableInstance extends BaseFLNet {
     protected void putCommonEnv(Map<String, Object> env) {
         put(env, CommonEnv.COMPOSE_PROJECT_NAME, projectName);
         put(env, CommonEnv.FLNET_INSTANCE_NAME, getName());
+        // derived, never read back: a moved deployment gets its new path on the next init
+        put(env, CommonEnv.FLNET_DEPLOYMENT_KIND, getKind().bundle());
+        put(env, CommonEnv.FLNET_DEPLOYMENT_DIR, getDirectory());
         put(env, CommonEnv.IMAGE_TAG, imageTag == null ? "latest" : imageTag);
         put(env, CommonEnv.FRONTEND_IMAGE, frontendImage);
         put(env, CommonEnv.TOOL_REGISTRY, toolRegistry);

@@ -7,6 +7,7 @@ import bio.cosy.flnet.cli.config.FLNetCliConfig;
 import bio.cosy.flnet.cli.helper.CliException;
 import bio.cosy.flnet.cli.helper.FilePermissionHelper;
 import bio.cosy.flnet.cli.helper.ProcessHelper;
+import bio.cosy.flnet.cli.helper.ProcessResult;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
 
@@ -24,7 +25,11 @@ public class ComposeBO {
     @Inject
     FLNetCliConfig config;
 
-    public int up(BaseFLNetDeployableInstance instance, boolean pull) {
+    /**
+     * Starts the deployment; with waitSeconds until every service runs and, where it has a health check, is healthy.
+     * Containers of services no longer in the compose file are removed.
+     */
+    public int up(BaseFLNetDeployableInstance instance, boolean pull, Integer waitSeconds) {
         List<Path> missing = instance.getMissingCertificates();
         if (!missing.isEmpty()) {
             String hint = instance.getKind() == DeploymentKind.CLIENT
@@ -44,7 +49,11 @@ public class ComposeBO {
                 return code;
             }
         }
-        return compose(instance, "up", "-d");
+        List<String> args = new ArrayList<>(List.of("up", "-d", "--remove-orphans"));
+        if (waitSeconds != null) {
+            args.addAll(List.of("--wait", "--wait-timeout", String.valueOf(waitSeconds)));
+        }
+        return compose(instance, args.toArray(String[]::new));
     }
 
     public int down(BaseFLNetDeployableInstance instance, boolean volumes) {
@@ -96,14 +105,14 @@ public class ComposeBO {
         }
         Path target = output == null || output.isEmpty()
                 ? instance.resolve(config.compose().generatedFile()) : Path.of(output).toAbsolutePath().normalize();
-        int code = ProcessHelper.runToFile(instance.getDirectory(), command, target);
-        if (code != 0) {
+        ProcessResult result = ProcessHelper.runToFile(instance.getDirectory(), command, target);
+        if (result.failed()) {
             try {
                 Files.deleteIfExists(target);
             } catch (IOException _) {
                 // the failed command is the more important error
             }
-            throw new CliException("'docker compose config' failed with exit code " + code + ". Is docker compose installed? "
+            throw new CliException("'docker compose config' failed: " + result.reason() + ". Is docker compose installed? "
                     + "Run 'flnet doctor'.", CliException.ENVIRONMENT);
         }
         if (keepVariables) {

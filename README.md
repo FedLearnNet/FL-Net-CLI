@@ -4,12 +4,14 @@
 scaffolds new FL-Net tools, as a single binary without Python, git or a JDK on the target machine.
 
 ```
-flnet client   init | certs | list | info | up | down | pull | stop | restart | clean | status | logs | compose    run a site that joins a network
-flnet platform init | list | info | up | down | pull | stop | restart | clean | status | logs | compose           run your own network platform
+flnet client   init | certs | list | info | up | down | pull | stop | restart | clean | status | logs | compose | backup | restore    run a site that joins a network
+flnet upgrade  [prepare | apply | rollback --dir <dir>]    check for a newer flnet; upgrade a client or platform to its version
+flnet backup   --dir <dir> [--all]                         back up a client or platform by its directory
+flnet restore  <backup> --dir <dir>                        put a backup back and start it again
+flnet platform init | list | info | up | down | pull | stop | restart | clean | status | logs | compose | backup | restore           run your own network platform
 flnet list                                                 all clients and platforms on this machine
 flnet tool     create <name>                               start a new tool project
 flnet doctor                                               check docker, docker compose, openssl
-flnet update [--pre]                                       check for a newer flnet and show how to install it
 flnet generate-completion                                  bash/zsh completion script
 ```
 
@@ -33,8 +35,8 @@ the `staging` images. Override either with `--image-tag` or `flnet.images.tag`.
 curl -fsSL https://raw.githubusercontent.com/FedLearnNet/FL-Net-CLI/main/install.sh | FLNET_VERSION=1.0.0 FLNET_INSTALL_DIR=/opt/bin FLNET_DOWNLOAD_URL=https://mirror.internal/flnet sh
 ```
 
-`flnet update` tells you when a newer release exists and prints the install command for it
-(release candidates `X.Y.Z.rcN` only with `--pre`, or when you run one).
+`flnet upgrade` tells you when a newer release exists and prints the install command for it
+(release candidates `X.Y.Z.rcN` only when you run one).
 
 Other platforms (e.g. Windows): download `flnet.jar` from the release page and run `java -jar flnet.jar` (Java 25+).
 
@@ -136,6 +138,37 @@ By default every value from `.env` and `env/*.env` is inlined, **including all s
 is written with owner-only permissions. `--keep-variables` keeps `${VAR}` references and `env_file`
 entries instead, so the file contains no secrets. Needs the Docker CLI with the compose plugin, but
 not a running daemon. Re-run it after every `init`.
+
+## Backup and restore
+
+```bash
+flnet client backup                       # databases only, backups/backup_<date>_<time> (UTC)
+flnet client backup --all before-update   # also configuration and secrets, with a name
+flnet backup --dir ~/fl-net/clients/default --all   # the same by directory, as the Admin Center runs it
+flnet client restore before-update        # asks first; --yes in scripts
+flnet client up
+flnet restore before-update --dir ~/fl-net/clients/default   # by directory, also starts it again
+```
+
+A backup is a dump of every Postgres service, found by `POSTGRES_DB` and `POSTGRES_USER` in the compose file; with
+`--all` also a copy of the deployment directory (including `.env` and the secrets in `env/`). The deployment has to
+run for the dumps. `restore` puts the databases, and the files if the backup has them, back; everything written since
+the backup is lost. A backup of only the databases is not restored into an older version. Afterwards only the
+databases run, `up` starts the rest. A failed backup keeps only its `backup.json` with the reason; it and an
+interrupted one are never restored and are removed by the next `backup`. Upgrades always back up everything.
+
+## Upgrade
+
+```bash
+flnet upgrade prepare --dir ~/fl-net/clients/default    # pulls the images of this flnet's version, all keeps running
+flnet upgrade apply --dir ~/fl-net/clients/default      # backup, new files and .env, start; back to the backup on failure
+flnet upgrade rollback --dir ~/fl-net/clients/default   # back to the backup of the last upgrade
+```
+
+A deployment upgrades to the version of the `flnet` that runs the command. `apply` waits until every service is
+healthy (`--wait-timeout`) and keeps the backups of the last two upgrades in `backups/upgrade_*`; the state is in
+`updates/state.json`. An interrupted upgrade is rolled back by the next run. The Admin Center runs the same in the
+`ghcr.io/fedlearnnet/fl-net-cli/flnet` image, started by orch-api.
 
 ## Scripted / unattended installs
 

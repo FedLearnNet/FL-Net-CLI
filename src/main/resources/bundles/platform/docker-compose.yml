@@ -109,6 +109,7 @@ services:
       - CONTAINER_NETWORK_CONTROLLER=${COMPOSE_PROJECT_NAME}-controller:8001
       - CONTAINER_NAME=${COMPOSE_PROJECT_NAME}
       - ORCH_DOCKER__PRIVATE__REGISTRY_URL=${TOOL_REGISTRY:-}
+      - UPDATER_DEPLOYMENT_DIR=${FLNET_DEPLOYMENT_DIR:-}
         # the build pipeline pushes tools to the platform registry; credentials are in orch-secrets.env
       - PIPELINE_DOCKER_REGISTRY=${TOOL_REGISTRY:-}
       - PIPELINE_DOCKER_GROUP=/tools
@@ -119,6 +120,9 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       - orch-data-volume:/mnt/input:rw
+      # state of the updater, see 'Updating' in the documentation
+      - ./updates:/flnet/updates:ro
+      - ./backups:/flnet/backups:ro
     depends_on:
       global-learning-db:
         condition: service_healthy

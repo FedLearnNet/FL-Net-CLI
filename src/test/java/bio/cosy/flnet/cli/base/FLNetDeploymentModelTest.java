@@ -1,6 +1,7 @@
 package bio.cosy.flnet.cli.base;
 
 import bio.cosy.flnet.cli.base.deployment.*;
+import bio.cosy.flnet.cli.base.env.CommonEnv;
 import bio.cosy.flnet.cli.helper.CliException;
 import bio.cosy.flnet.cli.helper.EnvFileHelper;
 import bio.cosy.flnet.cli.helper.NetworkHelper;
@@ -167,6 +168,7 @@ class FLNetDeploymentModelTest {
         loaded.fromEnv(asStrings(platform.toEnv()));
         loaded.fromSecretFiles(platform.toSecretFiles());
         assertEquals(platform.toEnv().toString(), loaded.toEnv().toString());
+        assertEquals("platform", asStrings(platform.toEnv()).get(CommonEnv.FLNET_DEPLOYMENT_KIND.key()));
         assertEquals(platform.toSecretFiles(), loaded.toSecretFiles());
         assertDescribesExactlyItsEnv(platform);
 
@@ -175,6 +177,29 @@ class FLNetDeploymentModelTest {
         List<String> errors = platform.problems(VALIDATOR);
         assertTrue(errors.stream().anyMatch(e -> e.contains("only be used once")), errors.toString());
         assertTrue(errors.stream().anyMatch(e -> e.contains("must terminate SSL")), errors.toString());
+    }
+
+    @Test
+    void anotherVersionMovesADerivedFrontendAlong() {
+        FLNetClientDeployment client = client();
+        client.setImageTag("1.4.0");
+        client.setFrontendImage("ghcr.io/fedlearnnet/frontends/local-fl-net:1.4.0");
+        client.useImageTag("1.5.0");
+        assertEquals("1.5.0", client.getImageTag());
+        assertEquals("ghcr.io/fedlearnnet/frontends/local-fl-net:1.5.0", client.getFrontendImage());
+
+        // a custom frontend keeps its own tag
+        client.setFrontendImage("registry.hospital.org/frontend:custom");
+        client.useImageTag("1.6.0");
+        assertEquals("registry.hospital.org/frontend:custom", client.getFrontendImage());
+    }
+
+    @Test
+    void envTellsTheUpdaterWhereAndWhatTheDeploymentIs() {
+        FLNetClientDeployment client = client();
+        Map<String, String> env = asStrings(client.toEnv());
+        assertEquals("client", env.get(CommonEnv.FLNET_DEPLOYMENT_KIND.key()));
+        assertEquals(client.getDirectory().toString(), env.get(CommonEnv.FLNET_DEPLOYMENT_DIR.key()));
     }
 
     @Test

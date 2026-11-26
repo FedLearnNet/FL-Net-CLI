@@ -63,10 +63,19 @@ public final class ComposeCommands {
         @Option(names = "--pull", description = "Pull the latest images before starting.")
         boolean pull;
 
+        @Option(names = "--wait", description = "Wait until every service runs and is healthy; fails otherwise.")
+        boolean waitHealthy;
+
+        @Option(names = "--wait-timeout", paramLabel = "<seconds>", defaultValue = "300",
+                description = "Seconds --wait may take. Default: ${DEFAULT-VALUE}.")
+        int waitTimeout;
+
         @Override
         public Integer call() {
-            int code = composeBO.up(instance(), pull);
-            if (code == 0) {
+            int code = composeBO.up(instance(), pull, waitHealthy ? waitTimeout : null);
+            if (code == 0 && waitHealthy) {
+                ConsoleHelper.success(instance().getKind().displayName() + " '" + instance().getName() + "' is running.");
+            } else if (code == 0) {
                 ConsoleHelper.success(instance().getKind().displayName() + " '" + instance().getName() + "' is starting.");
                 ConsoleHelper.info("Follow the startup with:");
                 ConsoleHelper.command("flnet " + parent.kind().bundle() + " logs -f" + nameFlag());
@@ -108,7 +117,7 @@ public final class ComposeCommands {
                 return code;
             }
             if (!noRestart && composeBO.isRunning(selected)) {
-                return composeBO.up(selected, false);
+                return composeBO.up(selected, false, null);
             }
             ConsoleHelper.success("Images of " + selected.getLabel() + " are up to date. Start or recreate the containers with:");
             ConsoleHelper.command("flnet " + parent.kind().bundle() + " up" + nameFlag());

@@ -11,6 +11,7 @@ public final class FilePermissionHelper {
     public static final String OWNER_ONLY = "rw-------";
     public static final String READABLE = "rw-r--r--";
     public static final String EXECUTABLE = "rwxr-xr-x";
+    public static final String OWNER_ONLY_DIRECTORY = "rwx------";
 
     private FilePermissionHelper() {
     }

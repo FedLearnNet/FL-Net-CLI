@@ -26,8 +26,17 @@ class ProcessHelperTest {
     void preservesExitCodesInBothOutputModes() {
         List<String> command = List.of(JAVA, "--flnet-invalid-option");
         assertEquals(1, ProcessHelper.runInteractive(directory, command));
-        assertEquals(1, ProcessHelper.runToFile(directory, command, directory.resolve("output")));
+        assertEquals(1, ProcessHelper.runToFile(directory, command, directory.resolve("output")).getCode());
         assertEquals(0, ProcessHelper.runInteractive(null, List.of(JAVA, "--version")));
+    }
+
+    @Test
+    void aFailureNamesTheLastErrorLine() {
+        ProcessResult result = ProcessHelper.runToFile(directory, List.of(JAVA, "--flnet-invalid-option"), directory.resolve("output"));
+
+        assertTrue(result.failed());
+        assertTrue(result.getError().contains("--flnet-invalid-option"), result.getError());
+        assertTrue(result.getError().strip().endsWith(result.reason()), result.reason());
     }
 
     @Test
@@ -36,7 +45,7 @@ class ProcessHelperTest {
         if (Files.getFileAttributeView(output, PosixFileAttributeView.class) != null) {
             Files.setPosixFilePermissions(output, PosixFilePermissions.fromString(FilePermissionHelper.READABLE));
         }
-        assertEquals(0, ProcessHelper.runToFile(directory, List.of(JAVA, "--version"), output));
+        assertEquals(0, ProcessHelper.runToFile(directory, List.of(JAVA, "--version"), output).getCode());
         assertFalse(Files.readString(output).isBlank());
         assertFalse(Files.readString(output).contains("old contents"));
         if (Files.getFileAttributeView(output, PosixFileAttributeView.class) != null) {

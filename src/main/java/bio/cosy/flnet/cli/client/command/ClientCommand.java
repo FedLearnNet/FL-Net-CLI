@@ -1,9 +1,11 @@
 package bio.cosy.flnet.cli.client.command;
 
 import bio.cosy.flnet.cli.base.deployment.DeploymentKind;
+import bio.cosy.flnet.cli.deploy.command.InstanceBackupCommand;
 import bio.cosy.flnet.cli.deploy.command.ComposeCommands;
 import bio.cosy.flnet.cli.deploy.command.DeploymentGroup;
 import bio.cosy.flnet.cli.deploy.command.InstanceCommands;
+import bio.cosy.flnet.cli.deploy.command.InstanceRestoreCommand;
 import picocli.CommandLine.Command;
 
 @Command(name = "client",
@@ -22,6 +24,8 @@ import picocli.CommandLine.Command;
                 ComposeCommands.Status.class,
                 ComposeCommands.Logs.class,
                 ComposeCommands.Compose.class,
+                InstanceBackupCommand.class,
+                InstanceRestoreCommand.class,
         })
 public class ClientCommand implements DeploymentGroup {
 

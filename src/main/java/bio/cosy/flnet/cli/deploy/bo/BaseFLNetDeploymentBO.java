@@ -5,6 +5,7 @@ import bio.cosy.flnet.cli.base.deployment.DeploymentKind;
 import bio.cosy.flnet.cli.config.FLNetCliConfig;
 import bio.cosy.flnet.cli.deploy.DeploymentBundleHelper;
 import bio.cosy.flnet.cli.deploy.PortPlanner;
+import bio.cosy.flnet.cli.deploy.backup.BaseBackupBO;
 import bio.cosy.flnet.cli.deploy.command.InstanceOptions;
 import bio.cosy.flnet.cli.helper.CliException;
 import bio.cosy.flnet.cli.helper.ConsoleHelper;
@@ -188,6 +189,15 @@ public abstract class BaseFLNetDeploymentBO<T extends BaseFLNetDeployableInstanc
 
 
     public DeploymentBundleHelper.InstallResult save(T instance, boolean refreshFiles, Path bundleDir) {
+        DeploymentBundleHelper.InstallResult files = write(instance, refreshFiles, bundleDir);
+        register(instance);
+        return files;
+    }
+
+    /**
+     * Files, secrets and .env of the instance, without registering it, e.g. for a copy of a deployment.
+     */
+    public DeploymentBundleHelper.InstallResult write(T instance, boolean refreshFiles, Path bundleDir) {
         instance.requireValid(validator);
         DeploymentBundleHelper.InstallResult files = DeploymentBundleHelper.install(kind(), instance.getDirectory(), bundleDir, refreshFiles);
         if (!BaseFLNetDeployableInstance.DEFAULT_NAME.equals(instance.getName())) {
@@ -195,8 +205,10 @@ public abstract class BaseFLNetDeploymentBO<T extends BaseFLNetDeployableInstanc
         }
         instance.toSecretFiles().forEach((file, variables) -> EnvFileHelper.write(instance.getSecretsDirectory().resolve(file), variables));
         EnvFileHelper.write(instance.getEnvFile(), instance.toEnv(), instance.envComments());
+        // mounted into orch-api; created here, else docker creates them owned by root
+        BaseBackupBO.createDirectory(instance.resolve(BaseBackupBO.DIRECTORY));
+        BaseBackupBO.createDirectory(instance.resolve(BaseBackupBO.UPDATES_DIRECTORY));
         afterSave(instance);
-        register(instance);
         return files;
     }
 

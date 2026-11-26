@@ -1,6 +1,7 @@
 package bio.cosy.flnet.cli.helper;
 
 import java.io.IOException;
+import java.lang.ProcessBuilder.Redirect;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -14,33 +15,76 @@ public final class ProcessHelper {
     }
 
     public static int runInteractive(Path workingDir, List<String> command) {
-        return run(workingDir, command, null);
+        return waitFor(command, builder(workingDir, command).inheritIO());
     }
 
-    public static int runToFile(Path workingDir, List<String> command, Path output) {
-        return run(workingDir, command, output);
-    }
-
-    private static int run(Path workingDir, List<String> command, Path output) {
+    public static ProcessResult runToFile(Path workingDir, List<String> command, Path output) {
         try {
-            ProcessBuilder process = new ProcessBuilder(command)
-                    .directory(workingDir == null ? null : workingDir.toFile());
-            if (output == null) {
-                process.inheritIO();
-            } else {
-                Files.deleteIfExists(output);
-                Files.createFile(output);
-                FilePermissionHelper.set(output, FilePermissionHelper.OWNER_ONLY);
-                process.redirectOutput(output.toFile()).redirectError(ProcessBuilder.Redirect.INHERIT);
-            }
-            return process.start().waitFor();
+            Files.deleteIfExists(output);
+            Files.createFile(output);
         } catch (IOException e) {
-            throw new CliException("Could not run '" + command.get(0) + "': " + e.getMessage()
-                    + ". Run 'flnet doctor' to check your setup.", CliException.ENVIRONMENT);
-        } catch (InterruptedException e) {
-            Thread.currentThread().interrupt();
-            throw CliException.aborted();
+            throw failure(command, e);
         }
+        FilePermissionHelper.set(output, FilePermissionHelper.OWNER_ONLY);
+        return runCapturingErrors(command, builder(workingDir, command).redirectOutput(output.toFile()));
+    }
+
+    /**
+     * A file as stdin, e.g. a dump into psql. Only errors reach the console.
+     */
+    public static ProcessResult runFromFile(Path workingDir, List<String> command, Path input) {
+        return runCapturingErrors(command, builder(workingDir, command).redirectInput(input.toFile())
+                .redirectOutput(Redirect.DISCARD));
+    }
+
+    /**
+     * Stdout of a command that is parsed, e.g. JSON; stderr goes to the console so warnings cannot break it.
+     */
+    public static String capture(Path workingDir, List<String> command) {
+        try {
+            Process process = builder(workingDir, command).redirectError(Redirect.INHERIT).start();
+            String output = new String(process.getInputStream().readAllBytes(), StandardCharsets.UTF_8);
+            int code = process.waitFor();
+            if (code != 0) {
+                throw new CliException("'" + String.join(" ", command) + "' failed with exit code " + code + ".", code);
+            }
+            return output;
+        } catch (IOException | InterruptedException e) {
+            throw failure(command, e);
+        }
+    }
+
+    private static ProcessBuilder builder(Path workingDir, List<String> command) {
+        return new ProcessBuilder(command).directory(workingDir == null ? null : workingDir.toFile());
+    }
+
+    // stderr is read and then shown on the console, so a failure can name its reason
+    private static ProcessResult runCapturingErrors(List<String> command, ProcessBuilder builder) {
+        try {
+            Process process = builder.redirectError(Redirect.PIPE).start();
+            String error = new String(process.getErrorStream().readAllBytes(), StandardCharsets.UTF_8);
+            System.err.print(error);
+            return new ProcessResult(process.waitFor(), error);
+        } catch (IOException | InterruptedException e) {
+            throw failure(command, e);
+        }
+    }
+
+    private static int waitFor(List<String> command, ProcessBuilder builder) {
+        try {
+            return builder.start().waitFor();
+        } catch (IOException | InterruptedException e) {
+            throw failure(command, e);
+        }
+    }
+
+    private static CliException failure(List<String> command, Exception e) {
+        if (e instanceof InterruptedException) {
+            Thread.currentThread().interrupt();
+            return CliException.aborted();
+        }
+        return new CliException("Could not run '" + command.get(0) + "': " + e.getMessage()
+                + ". Run 'flnet doctor' to check your setup.", CliException.ENVIRONMENT);
     }
 
     public static Optional<String> probe(String... command) {

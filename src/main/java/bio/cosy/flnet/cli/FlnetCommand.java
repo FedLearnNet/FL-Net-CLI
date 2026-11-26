@@ -6,11 +6,13 @@ import bio.cosy.flnet.cli.diagnostics.command.DoctorCommand;
 import bio.cosy.flnet.cli.platform.command.PlatformCommand;
 import bio.cosy.flnet.cli.helper.VersionProvider;
 import bio.cosy.flnet.cli.tool.command.ToolCommand;
-import bio.cosy.flnet.cli.update.UpdateCommand;
 import io.quarkus.picocli.runtime.annotations.TopCommand;
 import picocli.AutoComplete;
 import picocli.CommandLine.Command;
 import picocli.CommandLine.ScopeType;
+import bio.cosy.flnet.cli.deploy.command.BackupCommand;
+import bio.cosy.flnet.cli.deploy.command.RestoreCommand;
+import bio.cosy.flnet.cli.deploy.command.UpgradeCommand;
 
 @TopCommand
 @Command(name = "flnet",
@@ -29,7 +31,9 @@ import picocli.CommandLine.ScopeType;
                 ToolCommand.class,
                 ListCommand.class,
                 DoctorCommand.class,
-                UpdateCommand.class,
+                UpgradeCommand.class,
+                BackupCommand.class,
+                RestoreCommand.class,
                 AutoComplete.GenerateCompletion.class,
         },
         footer = {
@@ -40,7 +44,9 @@ import picocli.CommandLine.ScopeType;
                 "  flnet platform init        set up your own network platform",
                 "  flnet tool create <name>   start a new tool project",
                 "  flnet list                 show all clients and platforms on this machine",
-                "  flnet update               check for a newer flnet version",
+                "  flnet upgrade              check for a newer flnet; with prepare|apply --dir: upgrade a deployment",
+                "  flnet backup --dir <dir>   back up the databases of a deployment; --all with configuration and secrets",
+                "  flnet restore <backup> --dir <dir>   put a backup back and start the deployment again",
                 "",
                 "Settings: ~/.config/flnet/application.properties (see flnet.* in the built-in application.properties)",
                 "",
