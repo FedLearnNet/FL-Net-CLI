@@ -2,8 +2,9 @@ package bio.cosy.flnet.cli;
 
 import bio.cosy.flnet.cli.helper.EnvFileHelper;
 import bio.cosy.flnet.cli.helper.ProcessHelper;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import io.quarkus.test.junit.main.LaunchResult;
 import io.quarkus.test.junit.main.QuarkusMainLauncher;
 import io.quarkus.test.junit.main.QuarkusMainTest;
@@ -12,6 +13,7 @@ import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Tag;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
+import tools.jackson.core.JacksonException;
 
 import java.io.IOException;
 import java.net.InetAddress;
@@ -62,7 +64,7 @@ class EndToEndTest {
 
     private static final String DEFAULT_IMAGE_TAG = "staging";
 
-    private static final ObjectMapper JSON = new ObjectMapper();
+    private static final ObjectMapper JSON = new JsonMapper();
 
     @TempDir
     Path home;
@@ -254,12 +256,12 @@ class EndToEndTest {
                 return false;
             }
             for (JsonNode check : checks) {
-                if (!ignored.contains(check.path("name").asText()) && !"UP".equals(check.path("status").asText())) {
+                if (!ignored.contains(check.path("name").asString()) && !"UP".equals(check.path("status").asString())) {
                     return false;
                 }
             }
             return true;
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             return false; // e.g. an error message while the service starts
         }
     }

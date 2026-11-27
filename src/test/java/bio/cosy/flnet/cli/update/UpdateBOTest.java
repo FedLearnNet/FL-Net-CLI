@@ -1,7 +1,8 @@
 package bio.cosy.flnet.cli.update;
 
 import bio.cosy.flnet.cli.helper.ReleaseVersion;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -62,9 +63,9 @@ class UpdateBOTest {
                 .orElse(null);
     }
 
-    private static com.fasterxml.jackson.databind.JsonNode json(String text) {
+    private static tools.jackson.databind.JsonNode json(String text) {
         try {
-            return new ObjectMapper().readTree(text);
+            return new JsonMapper().readTree(text);
         } catch (Exception e) {
             throw new IllegalStateException(e);
         }

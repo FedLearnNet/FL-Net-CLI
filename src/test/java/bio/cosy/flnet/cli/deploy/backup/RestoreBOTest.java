@@ -2,7 +2,8 @@ package bio.cosy.flnet.cli.deploy.backup;
 
 import bio.cosy.flnet.cli.base.deployment.FLNetClientDeployment;
 import bio.cosy.flnet.cli.helper.CliException;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.databind.json.JsonMapper;
 import org.junit.jupiter.api.BeforeEach;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.io.TempDir;
@@ -21,7 +22,7 @@ class RestoreBOTest {
     @TempDir
     Path directory;
 
-    private final ObjectMapper objectMapper = new ObjectMapper();
+    private final ObjectMapper objectMapper = new JsonMapper();
     private RestoreBO restoreBO;
     private FLNetClientDeployment client;
 
