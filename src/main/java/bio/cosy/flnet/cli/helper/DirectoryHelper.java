@@ -1,6 +1,7 @@
 package bio.cosy.flnet.cli.helper;
 
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
+import tools.jackson.core.JacksonException;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -58,7 +59,7 @@ public final class DirectoryHelper {
         try {
             objectMapper.writerWithDefaultPrettyPrinter().writeValue(tmp.toFile(), content);
             Files.move(tmp, file, StandardCopyOption.REPLACE_EXISTING, StandardCopyOption.ATOMIC_MOVE);
-        } catch (IOException e) {
+        } catch (JacksonException | IOException e) {
             throw new CliException("Could not write " + file + ": " + e.getMessage(), CliException.ENVIRONMENT);
         }
     }

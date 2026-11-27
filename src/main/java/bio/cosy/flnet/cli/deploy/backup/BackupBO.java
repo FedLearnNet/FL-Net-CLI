@@ -6,8 +6,9 @@ import bio.cosy.flnet.cli.helper.ConsoleHelper;
 import bio.cosy.flnet.cli.helper.DirectoryHelper;
 import bio.cosy.flnet.cli.helper.ProcessHelper;
 import bio.cosy.flnet.cli.helper.ProcessResult;
-import com.fasterxml.jackson.databind.JsonNode;
+import tools.jackson.databind.JsonNode;
 import jakarta.enterprise.context.ApplicationScoped;
+import tools.jackson.core.JacksonException;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -85,7 +86,7 @@ public class BackupBO extends BaseBackupBO {
         String config = ProcessHelper.capture(instance.getDirectory(), List.of("docker", "compose", "config", "--format", "json"));
         try {
             return databasesOf(objectMapper.readTree(config));
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             throw new CliException("Could not read the output of 'docker compose config': " + e.getMessage());
         }
     }
@@ -107,11 +108,11 @@ public class BackupBO extends BaseBackupBO {
     // a map, or a list of KEY=value
     private static String environmentValue(JsonNode environment, String key) {
         if (environment.isObject()) {
-            String value = environment.path(key).asText("");
+            String value = environment.path(key).asString("");
             return value.isEmpty() ? null : value;
         }
         for (JsonNode entry : environment) {
-            String text = entry.asText();
+            String text = entry.asString();
             if (text.startsWith(key + "=") && text.length() > key.length() + 1) {
                 return text.substring(key.length() + 1);
             }

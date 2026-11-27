@@ -11,9 +11,10 @@ import bio.cosy.flnet.cli.helper.ConsoleHelper;
 import bio.cosy.flnet.cli.helper.DirectoryHelper;
 import bio.cosy.flnet.cli.helper.ReleaseVersion;
 import bio.cosy.flnet.cli.network.bo.FLNetNetworkBO;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import tools.jackson.core.JacksonException;
 
 import java.io.IOException;
 import java.nio.channels.FileChannel;
@@ -91,7 +92,7 @@ public class UpgradeBO {
         }
         try {
             return objectMapper.readValue(file.toFile(), UpgradeState.class);
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             throw new CliException("Could not read " + file + ": " + e.getMessage());
         }
     }
