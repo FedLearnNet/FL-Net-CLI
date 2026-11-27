@@ -4,10 +4,11 @@ import bio.cosy.flnet.cli.config.FLNetCliConfig;
 import bio.cosy.flnet.cli.helper.CliException;
 import bio.cosy.flnet.cli.helper.ReleaseVersion;
 import bio.cosy.flnet.cli.helper.VersionProvider;
-import com.fasterxml.jackson.databind.JsonNode;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.JsonNode;
+import tools.jackson.databind.ObjectMapper;
 import jakarta.enterprise.context.ApplicationScoped;
 import jakarta.inject.Inject;
+import tools.jackson.core.JacksonException;
 
 import java.io.IOException;
 import java.net.URI;
@@ -56,7 +57,7 @@ public class UpdateBO {
                         + " (HTTP " + response.statusCode() + ").", CliException.ENVIRONMENT);
             }
             return parse(objectMapper.readTree(response.body()));
-        } catch (IOException e) {
+        } catch (JacksonException | IOException e) {
             throw new CliException("Could not reach " + config.update().releasesUrl() + ": " + e.getMessage(),
                     CliException.ENVIRONMENT);
         } catch (InterruptedException e) {
@@ -71,8 +72,8 @@ public class UpdateBO {
             if (node.path("draft").asBoolean(false)) {
                 continue;
             }
-            ReleaseVersion.parse(node.path("tag_name").asText(null))
-                    .ifPresent(version -> releases.add(new Release(version, node.path("html_url").asText(""))));
+            ReleaseVersion.parse(node.path("tag_name").asString(null))
+                    .ifPresent(version -> releases.add(new Release(version, node.path("html_url").asString(""))));
         }
         return releases;
     }

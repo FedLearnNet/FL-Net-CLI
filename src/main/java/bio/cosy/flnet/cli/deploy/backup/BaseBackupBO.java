@@ -3,8 +3,9 @@ package bio.cosy.flnet.cli.deploy.backup;
 import bio.cosy.flnet.cli.base.deployment.BaseFLNetDeployableInstance;
 import bio.cosy.flnet.cli.helper.CliException;
 import bio.cosy.flnet.cli.helper.FilePermissionHelper;
-import com.fasterxml.jackson.databind.ObjectMapper;
+import tools.jackson.databind.ObjectMapper;
 import jakarta.inject.Inject;
+import tools.jackson.core.JacksonException;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -33,7 +34,7 @@ public abstract class BaseBackupBO {
         }
         try {
             return objectMapper.readValue(manifest.toFile(), DeploymentBackup.class);
-        } catch (IOException e) {
+        } catch (JacksonException e) {
             throw new CliException("Could not read " + manifest + ": " + e.getMessage());
         }
     }
